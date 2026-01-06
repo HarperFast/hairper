@@ -1,3 +1,5 @@
+#!/usr/bin/env tsx
+import 'dotenv/config';
 import {Agent, MemorySession, run} from '@openai/agents';
 import chalk from 'chalk';
 import {askQuestion} from './utils/askQuestion.ts';
@@ -5,6 +7,12 @@ import {createApplyPatchTool} from "./tools/applyPatchTool.ts";
 import {harperResponse} from "./utils/harperResponse.ts";
 
 async function main() {
+    if (!process.env['OPENAI_API_KEY']) {
+        harperResponse(chalk.red('Error: OPENAI_API_KEY is not set.'));
+        console.log(`Please set it in your environment or in a ${chalk.cyan('.env')} file.`);
+        process.exit(1);
+    }
+
     const workspaceRoot = process.cwd();
     console.log(chalk.dim(`Working directory: ${chalk.cyan(workspaceRoot)}`));
     console.log(chalk.dim(`Press Ctrl+C or hit enter twice to exit.\n`));

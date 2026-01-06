@@ -1,4 +1,3 @@
-- Designed for... global install? CLI for now. Link so I can hairper
 - Tool to create a harper app from the template
 - List files in a directory
 - Search for a file by name
