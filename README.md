@@ -1,3 +1,5 @@
+![](assets/baileys-awesome-logo-for-hairper.png)
+
 # Hairper
 
 AI to help you with Harper app management.
