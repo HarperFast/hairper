@@ -41,6 +41,8 @@ async function main() {
         }
         emptyLines = 0;
 
+        spinner.start();
+
         const stream = await run(
             agent,
             task,
