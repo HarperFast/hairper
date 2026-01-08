@@ -17,7 +17,7 @@ export const readFileTool = tool({
 		try {
 			return readFile(fileName, 'utf-8');
 		} catch (error) {
-			return `Error reading file: ${error.message}`;
+			return `Error reading file: ${error}`;
 		}
 	},
 });

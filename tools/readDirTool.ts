@@ -17,7 +17,7 @@ export const readDirTool = tool({
 		try {
 			return readdir(directoryName, 'utf-8');
 		} catch (error) {
-			return `Error reading file: ${error.message}`;
+			return `Error reading directory: ${error}`;
 		}
 	},
 });
