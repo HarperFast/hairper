@@ -1,5 +1,5 @@
 import {createInterface} from 'node:readline/promises';
-import {harperResponse} from './harperResponse.ts';
+import {cleanUpAndSayBye} from './cleanUpAndSayBye.ts';
 
 export async function askQuestion(query: string): Promise<string> {
 	const rl = createInterface({
@@ -8,8 +8,7 @@ export async function askQuestion(query: string): Promise<string> {
 	});
 
 	rl.on('SIGINT', () => {
-		console.log('');
-		harperResponse('See you later!');
+		cleanUpAndSayBye();
 		rl.close();
 		process.exit(0);
 	});

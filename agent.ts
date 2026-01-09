@@ -6,6 +6,7 @@ import {existsSync} from 'node:fs';
 import {join} from 'node:path';
 import {createTools} from './tools/factory.ts';
 import {askQuestion} from './utils/askQuestion.ts';
+import {cleanUpAndSayBye} from './utils/cleanUpAndSayBye.ts';
 import {harperResponse} from './utils/harperResponse.ts';
 import {spinner} from './utils/spinner.ts';
 
@@ -45,7 +46,7 @@ async function main() {
         if (!task) {
             emptyLines += 1;
             if (emptyLines >= 2) {
-                harperResponse('See you later!');
+                cleanUpAndSayBye();
                 process.exit(0);
             }
             continue;
