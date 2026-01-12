@@ -68,44 +68,54 @@ async function main() {
 		let atStartOfLine = true;
 
 		for await (const event of stream) {
-			if (event.type === 'raw_model_stream_event') {
-				const data = event.data as any;
-				if (data.type === 'response_started') {
-					if (!atStartOfLine) {
-						process.stdout.write('\n');
+			switch (event.type) {
+				case 'raw_model_stream_event':
+					const data = event.data as any;
+					switch (data.type) {
+						case 'response_started':
+							if (!atStartOfLine) {
+								process.stdout.write('\n');
+								atStartOfLine = true;
+							}
+							spinner.start();
+							break;
+						case 'output_text_delta':
+							spinner.stop();
+							if (!hasStartedResponse) {
+								process.stdout.write(`${chalk.bold('Harper:')} `);
+								hasStartedResponse = true;
+							}
+							process.stdout.write(chalk.cyan(data.delta));
+							atStartOfLine = data.delta.endsWith('\n');
+							break;
+						case 'response_done':
+							spinner.stop();
+							atStartOfLine = true;
+							break;
+					}
+					break;
+				case 'agent_updated_stream_event':
+					spinner.stop();
+					console.log(`\n${chalk.magenta('👤')} ${chalk.bold('Agent switched to:')} ${chalk.italic(event.agent.name)}`);
+					atStartOfLine = true;
+					spinner.start();
+					break;
+				case 'run_item_stream_event':
+					if (event.name === 'tool_called') {
+						spinner.stop();
+						const item = event.item.rawItem ?? event.item;
+						const name = item.name || item.type || 'tool';
+						const args: string = typeof item.arguments === 'string'
+							? item.arguments
+							: item.arguments
+							? JSON.stringify(item.arguments)
+							: '';
+						const displayedArgs = args ? `(${args.slice(0, 50)}${args.length > 50 ? '...' : ''})` : '()';
+						console.log(`\n${chalk.yellow('🛠️')}  ${chalk.cyan(name)}${chalk.dim(displayedArgs)}`);
 						atStartOfLine = true;
+						spinner.start();
 					}
-					spinner.start();
-				} else if (data.type === 'output_text_delta') {
-					spinner.stop();
-					if (!hasStartedResponse) {
-						process.stdout.write(`${chalk.bold('Harper:')} `);
-						hasStartedResponse = true;
-					}
-					process.stdout.write(chalk.cyan(data.delta));
-					atStartOfLine = data.delta.endsWith('\n');
-				} else if (data.type === 'response_done') {
-					spinner.stop();
-					atStartOfLine = true;
-				}
-			} else if (event.type === 'agent_updated_stream_event') {
-				spinner.stop();
-				console.log(`\n${chalk.magenta('👤')} ${chalk.bold('Agent switched to:')} ${chalk.italic(event.agent.name)}`);
-				atStartOfLine = true;
-				spinner.start();
-			} else if (event.type === 'run_item_stream_event') {
-				if (event.name === 'tool_called') {
-					spinner.stop();
-					const item = event.item.rawItem ?? event.item;
-					const name = item.name || item.type || 'tool';
-					let args = item.arguments || '';
-					if (typeof args !== 'string') { args = JSON.stringify(args); }
-					const displayArgs = args && args.length <= 80 ? `(${args})` : '';
-					// console.log(item);
-					console.log(`\n${chalk.yellow('🛠️')}  ${chalk.cyan(name)}${chalk.dim(displayArgs)}`);
-					atStartOfLine = true;
-					spinner.start();
-				}
+					break;
 			}
 		}
 		spinner.stop();
