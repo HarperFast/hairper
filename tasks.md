@@ -1,13 +1,15 @@
 - Add more tools:
+  - Ask if they want to automatically approve all code changes in the future.
+  - Ask if they want to automatically approve all shell scripts in the future.
   - Tool for running Harper and observing the results
+    - Update the template with the latest TypeScript stuff
+    - Tool(s) for looking at the schemas for configs? Resources? Tables?
+    - Start it off with the Vite plugin pre-installed?
     - Setting the username and password we'll use?
     - Logging in? With cookie...
-    - Start it off with the Vite plugin pre-installed?
     - Grab OpenAPI JSON?
     - Hit API?
     - Run operation?
-  - Tool for logging in to your Fabric account / cluster
-  - Tool for deploying to Fabric
-  - Tool(s) for looking at the schemas for configs? Resources? Tables?
-  - Ask if they want to automatically approve all code changes in the future.
+    - Tool for logging in to your Fabric account / cluster
+    - Tool for deploying to Fabric
 - Reporting on total token usage
