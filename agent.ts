@@ -42,8 +42,21 @@ async function main() {
 	let emptyLines = 0;
 	let approvalState: any | null = null;
 
+	let controller: AbortController | null = null;
+
+	spinner.interrupt = () => {
+		if (controller) {
+			spinner.stop();
+			controller.abort();
+			harperResponse('<thought interrupted>');
+		}
+	};
+
 	while (true) {
 		let task: string = '';
+
+		controller = new AbortController();
+		const signal = controller.signal;
 
 		if (!approvalState) {
 			task = await askQuestion('> ');
@@ -65,6 +78,7 @@ async function main() {
 		const stream = await run(agent, approvalState ?? task, {
 			session,
 			stream: true,
+			signal,
 		});
 		approvalState = null;
 

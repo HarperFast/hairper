@@ -1,17 +1,38 @@
 import process from 'node:process';
+import { createInterface, Interface } from 'node:readline';
 
 class Spinner {
+	public interrupt: (() => void) | null = null;
+
 	private interval: NodeJS.Timeout | null = null;
 	private chars = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 	private i = 0;
 	private readonly message: string;
+	private rl: Interface | null = null;
+
+	private readonly checkLine = (line: string) => {
+		if (line === '' && this.interrupt) {
+			this.rl?.close();
+			this.interrupt();
+		}
+	};
 
 	constructor(message: string = 'Thinking...') {
 		this.message = message;
 	}
 
 	start() {
-		if (this.interval) { return; }
+		if (this.interval) {
+			return;
+		}
+
+		this.rl = createInterface({
+			input: process.stdin,
+			output: process.stdout,
+			terminal: false,
+		});
+		this.rl.on('line', this.checkLine);
+
 		this.i = 0;
 		process.stdout.write(`${this.chars[this.i]} ${this.message}`);
 		this.interval = setInterval(() => {
@@ -23,6 +44,8 @@ class Spinner {
 	stop() {
 		if (!this.interval) { return; }
 		clearInterval(this.interval);
+		this.rl?.close();
+		this.rl = null;
 		this.interval = null;
 		process.stdout.write('\r\x1b[K');
 	}

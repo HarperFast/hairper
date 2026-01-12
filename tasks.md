@@ -1,5 +1,4 @@
 - Add more tools:
-  - Ability to interrupt it by pressing enter.
   - Tool for running Harper and observing the results
     - Update the template with the latest TypeScript stuff
     - Tool(s) for looking at the schemas for configs? Resources? Tables?
