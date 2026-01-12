@@ -1,7 +1,10 @@
 import { tool } from '@openai/agents';
-import { execSync } from 'node:child_process';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { z } from 'zod';
 import { isIgnored } from '../../utils/aiignore.ts';
+
+const execFileAsync = promisify(execFile);
 
 const ToolParameters = z.object({
 	path: z.string()
@@ -17,12 +20,12 @@ export const egrepTool = tool({
 	parameters: ToolParameters,
 	async execute({ path, pattern }: z.infer<typeof ToolParameters>) {
 		try {
-			const output = execSync(`egrep -ir "${pattern}" ${path}`).toString('utf8');
-			return output
+			const { stdout } = await execFileAsync('grep', ['-Eir', pattern, path]);
+			return stdout
 				.split('\n')
 				.filter(line => {
 					if (line.trim() === '') { return false; }
-					// egrep output format is typically path:line_content
+					// grep output format is typically path:line_content
 					const colonIndex = line.indexOf(':');
 					if (colonIndex !== -1) {
 						const filePath = line.substring(0, colonIndex);
@@ -31,8 +34,12 @@ export const egrepTool = tool({
 					return true;
 				})
 				.join('\n');
-		} catch (error) {
-			return `Error executing egrep command: ${error}`;
+		} catch (error: any) {
+			// grep returns exit code 1 if no matches found, which is treated as an error by execFile
+			if (error.code === 1) {
+				return '';
+			}
+			return `Error executing egrep command: ${error.stderr || error.message}`;
 		}
 	},
 });

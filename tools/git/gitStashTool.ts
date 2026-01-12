@@ -1,9 +1,9 @@
 import { tool } from '@openai/agents';
-import { exec } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { z } from 'zod';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 const allowedActions = ['push', 'pop', 'apply', 'list'];
 
@@ -21,11 +21,11 @@ export const gitStashTool = tool({
 			if (!allowedActions.includes(action)) {
 				return `Error: Invalid action '${action}'. Allowed actions are: ${allowedActions.join(', ')}`;
 			}
-			let command = `git stash ${action}`;
+			const args = ['stash', action];
 			if (action === 'push' && message) {
-				command += ` -m "${message.replace(/"/g, '\\"')}"`;
+				args.push('-m', message);
 			}
-			const { stdout, stderr } = await execAsync(command);
+			const { stdout, stderr } = await execFileAsync('git', args);
 			return `Success: ${stdout || stderr || `Git stash ${action} completed`}`;
 		} catch (error: any) {
 			return `Error: ${error.stderr || error.message}`;

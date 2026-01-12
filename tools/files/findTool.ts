@@ -1,7 +1,10 @@
 import { tool } from '@openai/agents';
-import { execSync } from 'node:child_process';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { z } from 'zod';
 import { isIgnored } from '../../utils/aiignore.ts';
+
+const execFileAsync = promisify(execFile);
 
 const ToolParameters = z.object({
 	path: z.string()
@@ -19,13 +22,13 @@ export const findTool = tool({
 	parameters: ToolParameters,
 	async execute({ path, iname }: z.infer<typeof ToolParameters>) {
 		try {
-			const output = execSync(`find ${path} -iname '${iname}'`).toString('utf8');
-			return output
+			const { stdout } = await execFileAsync('find', [path, '-iname', iname]);
+			return stdout
 				.split('\n')
 				.filter(line => line.trim() !== '' && !isIgnored(line))
 				.join('\n');
-		} catch (error) {
-			return `Error executing find command: ${error}`;
+		} catch (error: any) {
+			return `Error executing find command: ${error.stderr || error.message}`;
 		}
 	},
 });

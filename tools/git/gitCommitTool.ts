@@ -1,9 +1,9 @@
 import { tool } from '@openai/agents';
-import { exec } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { z } from 'zod';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 const GitCommitParameters = z.object({
 	message: z.string().describe('The commit message.'),
@@ -18,10 +18,8 @@ export const gitCommitTool = tool({
 	parameters: GitCommitParameters,
 	async execute({ message, addAll }: z.infer<typeof GitCommitParameters>) {
 		try {
-			const command = addAll
-				? `git commit -am "${message.replace(/"/g, '\\"')}"`
-				: `git commit -m "${message.replace(/"/g, '\\"')}"`;
-			const { stdout, stderr } = await execAsync(command);
+			const args = addAll ? ['commit', '-am', message] : ['commit', '-m', message];
+			const { stdout, stderr } = await execFileAsync('git', args);
 			return `Success: ${stdout || stderr || 'Changes committed'}`;
 		} catch (error: any) {
 			return `Error: ${error.stderr || error.message}`;

@@ -1,9 +1,9 @@
 import { tool } from '@openai/agents';
-import { exec } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { z } from 'zod';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 const GitLogParameters = z.object({
 	count: z.number().optional().default(10).describe('Number of commits to show.'),
@@ -16,11 +16,11 @@ export const gitLogTool = tool({
 	parameters: GitLogParameters,
 	async execute({ count, oneline }: z.infer<typeof GitLogParameters>) {
 		try {
-			let command = `git log -n ${count}`;
+			const args = ['log', '-n', count.toString()];
 			if (oneline) {
-				command += ' --oneline';
+				args.push('--oneline');
 			}
-			const { stdout, stderr } = await execAsync(command);
+			const { stdout, stderr } = await execFileAsync('git', args);
 			return stdout || stderr || 'No log output';
 		} catch (error: any) {
 			return `Error: ${error.stderr || error.message}`;

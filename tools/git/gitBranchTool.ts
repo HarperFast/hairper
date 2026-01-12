@@ -1,9 +1,9 @@
 import { tool } from '@openai/agents';
-import { exec } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { z } from 'zod';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 const GitBranchParameters = z.object({
 	branchName: z.string().describe('The name of the branch to create or switch to.'),
@@ -17,8 +17,8 @@ export const gitBranchTool = tool({
 	needsApproval: true,
 	async execute({ branchName, create }: z.infer<typeof GitBranchParameters>) {
 		try {
-			const command = create ? `git checkout -b ${branchName}` : `git checkout ${branchName}`;
-			const { stdout, stderr } = await execAsync(command);
+			const args = create ? ['checkout', '-b', branchName] : ['checkout', branchName];
+			const { stdout, stderr } = await execFileAsync('git', args);
 			return `Success: ${stdout || stderr || `Switched to branch ${branchName}`}`;
 		} catch (error: any) {
 			return `Error: ${error.stderr || error.message}`;

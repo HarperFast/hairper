@@ -1,9 +1,9 @@
 import { tool } from '@openai/agents';
-import { exec } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { z } from 'zod';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 const GitWorkspaceParameters = z.object({
 	path: z.string().describe('The path where the new workspace (worktree) should be created.'),
@@ -17,10 +17,10 @@ export const gitWorkspaceTool = tool({
 	parameters: GitWorkspaceParameters,
 	async execute({ path, branchName, createBranch }: z.infer<typeof GitWorkspaceParameters>) {
 		try {
-			const command = createBranch
-				? `git worktree add -b ${branchName} ${path}`
-				: `git worktree add ${path} ${branchName}`;
-			const { stdout, stderr } = await execAsync(command);
+			const args = createBranch
+				? ['worktree', 'add', '-b', branchName, path]
+				: ['worktree', 'add', path, branchName];
+			const { stdout, stderr } = await execFileAsync('git', args);
 			return `Success: ${stdout || stderr || `Created workspace at ${path}`}`;
 		} catch (error: any) {
 			return `Error: ${error.stderr || error.message}`;
