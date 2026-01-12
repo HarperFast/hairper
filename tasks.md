@@ -1,6 +1,5 @@
 - Add more tools:
-  - Ask if they want to automatically approve all code changes in the future.
-  - Ask if they want to automatically approve all shell scripts in the future.
+  - Ability to interrupt it by pressing enter.
   - Tool for running Harper and observing the results
     - Update the template with the latest TypeScript stuff
     - Tool(s) for looking at the schemas for configs? Resources? Tables?

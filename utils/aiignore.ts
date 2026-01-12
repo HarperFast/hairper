@@ -14,7 +14,8 @@ export function loadAiIgnore() {
 			ignorePatterns = content
 				.split(/\r?\n/)
 				.map(line => line.trim())
-				.filter(line => line && !line.startsWith('#'));
+				.filter(line => line && !line.startsWith('#'))
+				.map(pattern => (pattern.endsWith('/') || pattern.endsWith('\\')) ? pattern.slice(0, -1) : pattern);
 		} catch (error) {
 			console.error(`Error reading .aiignore: ${error}`);
 			ignorePatterns = [];

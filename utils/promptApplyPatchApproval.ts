@@ -9,12 +9,11 @@ interface Operation {
 	diff?: string;
 }
 
-const autoApproved = process.env.APPLY_PATCH_AUTO_APPROVE === '1';
-
 export async function promptApplyPatchApproval(
 	operation: Operation,
 ): Promise<boolean> {
 	spinner.stop();
+	const autoApproved = process.env.APPLY_PATCH_AUTO_APPROVE === '1';
 	let approved = autoApproved ? 'y' : 'n';
 
 	if (!autoApproved) {

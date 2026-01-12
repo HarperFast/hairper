@@ -4,6 +4,8 @@ import { egrepTool } from './files/egrepTool.ts';
 import { findTool } from './files/findTool.ts';
 import { readDirTool } from './files/readDirTool.ts';
 import { readFileTool } from './files/readFileTool.ts';
+import { setPatchAutoApproveTool } from './general/setPatchAutoApproveTool.ts';
+import { setShellAutoApproveTool } from './general/setShellAutoApproveTool.ts';
 import { shellTool } from './general/shell.ts';
 import { webTool } from './general/web.ts';
 import { gitAddTool } from './git/gitAddTool.ts';
@@ -39,6 +41,8 @@ export function createTools() {
 		readFileTool,
 		readHarperLogsTool,
 		readHarperOpenAPISpecTool,
+		setPatchAutoApproveTool,
+		setShellAutoApproveTool,
 		shellTool,
 		startHarperTool,
 		stopHarperTool,
