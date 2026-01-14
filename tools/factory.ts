@@ -16,6 +16,9 @@ import { gitStashTool } from './git/gitStashTool.ts';
 import { gitStatusTool } from './git/gitStatusTool.ts';
 import { gitWorkspaceTool } from './git/gitWorkspaceTool.ts';
 import { createNewHarperApplicationTool } from './harper/createNewHarperApplicationTool.ts';
+import { getHarperConfigSchemaTool } from './harper/getHarperConfigSchemaTool.ts';
+import { getHarperResourceInterfaceTool } from './harper/getHarperResourceInterfaceTool.ts';
+import { getHarperSchemaGraphQLTool } from './harper/getHarperSchemaGraphQLTool.ts';
 import { openBrowserTool } from './harper/openBrowserTool.ts';
 import { readHarperLogsTool } from './harper/readHarperLogsTool.ts';
 import { readHarperOpenAPISpecTool } from './harper/readHarperOpenAPISpecTool.ts';
@@ -29,6 +32,9 @@ export function createTools() {
 		createNewHarperApplicationTool,
 		egrepTool,
 		findTool,
+		getHarperConfigSchemaTool,
+		getHarperResourceInterfaceTool,
+		getHarperSchemaGraphQLTool,
 		gitAddTool,
 		gitBranchTool,
 		gitCommitTool,

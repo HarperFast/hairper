@@ -30,6 +30,7 @@
 	"devDependencies": {
 		"@types/unzipper": "^0.10.11",
 		"dprint": "^0.51.1",
+		"harperdb": "^4.7.15",
 		"oxlint": "^1.38.0",
 		"tsx": "^4.21.0",
 		"typescript": "^5.9.3",

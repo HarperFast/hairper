@@ -1,7 +1,5 @@
 - Add more tools:
   - Tool for running Harper and observing the results
-    - Update the template with the latest TypeScript stuff
-    - Tool(s) for looking at the schemas for configs? Resources? Tables?
     - Start it off with the Vite plugin pre-installed?
     - Setting the username and password we'll use?
     - Logging in? With cookie...
