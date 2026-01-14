@@ -10,6 +10,19 @@ import { cleanUpAndSayBye } from './utils/cleanUpAndSayBye.ts';
 import { harperResponse } from './utils/harperResponse.ts';
 import { spinner } from './utils/spinner.ts';
 
+const MODEL_PRICES: Record<string, { input: number; output: number }> = {
+	'gpt-4o': { input: 2.50 / 1_000_000, output: 10.00 / 1_000_000 },
+	'gpt-4o-mini': { input: 0.15 / 1_000_000, output: 0.60 / 1_000_000 },
+	'o1': { input: 15.00 / 1_000_000, output: 60.00 / 1_000_000 },
+	'o1-mini': { input: 1.10 / 1_000_000, output: 4.40 / 1_000_000 },
+	'gpt-5.2': { input: 10.00 / 1_000_000, output: 30.00 / 1_000_000 },
+};
+
+function calculateCost(model: string, inputTokens: number, outputTokens: number): number {
+	const prices = MODEL_PRICES[model] || MODEL_PRICES['gpt-4o']!;
+	return inputTokens * prices.input + outputTokens * prices.output;
+}
+
 async function main() {
 	if (!process.env['OPENAI_API_KEY']) {
 		harperResponse(chalk.red('Error: OPENAI_API_KEY is not set.'));
@@ -19,6 +32,10 @@ async function main() {
 
 	const workspaceRoot = process.cwd();
 	const harperAppExists = existsSync(join(workspaceRoot, 'config.yaml'));
+
+	let totalInputTokens = 0;
+	let totalOutputTokens = 0;
+	let totalCost = 0;
 
 	console.log(chalk.dim(`Working directory: ${chalk.cyan(workspaceRoot)}`));
 	console.log(chalk.dim(`Harper app detected in it: ${chalk.cyan(harperAppExists ? 'Yes' : 'No')}`));
@@ -63,6 +80,15 @@ async function main() {
 			if (!task) {
 				emptyLines += 1;
 				if (emptyLines >= 2) {
+					if (totalInputTokens > 0 || totalOutputTokens > 0) {
+						console.log(
+							chalk.dim(
+								`Final session usage: ${chalk.cyan(totalInputTokens)} input, ${
+									chalk.cyan(totalOutputTokens)
+								} output tokens. Total cost: ${chalk.cyan('$' + totalCost.toFixed(4))}`,
+							),
+						);
+					}
 					cleanUpAndSayBye();
 					break;
 				}
@@ -86,6 +112,15 @@ async function main() {
 		let atStartOfLine = true;
 
 		for await (const event of stream) {
+			const usage = stream.state.usage;
+			const modelName = typeof agent.model === 'string' ? agent.model : 'gpt-4o';
+			const turnCost = calculateCost(modelName, usage.inputTokens, usage.outputTokens);
+			spinner.status = chalk.dim(
+				`[Tokens: ${chalk.cyan(usage.inputTokens)} in, ${chalk.cyan(usage.outputTokens)} out | Cost: ${
+					chalk.cyan('$' + turnCost.toFixed(4))
+				} (Total: ${chalk.cyan('$' + (totalCost + turnCost).toFixed(4))})]`,
+			);
+
 			switch (event.type) {
 				case 'raw_model_stream_event':
 					const data = event.data;
@@ -169,6 +204,16 @@ async function main() {
 		spinner.stop();
 		if (!atStartOfLine || hasStartedResponse) {
 			process.stdout.write('\n\n');
+		}
+
+		if (!approvalState) {
+			const usage = stream.state.usage;
+			const modelName = typeof agent.model === 'string' ? agent.model : 'gpt-4o';
+			const turnCost = calculateCost(modelName, usage.inputTokens, usage.outputTokens);
+
+			totalInputTokens += usage.inputTokens;
+			totalOutputTokens += usage.outputTokens;
+			totalCost += turnCost;
 		}
 	}
 }

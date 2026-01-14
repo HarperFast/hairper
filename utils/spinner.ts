@@ -8,6 +8,7 @@ class Spinner {
 	private chars = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 	private i = 0;
 	private readonly message: string;
+	public status = '';
 	private rl: Interface | null = null;
 
 	private readonly checkLine = (line: string) => {
@@ -34,10 +35,10 @@ class Spinner {
 		this.rl.on('line', this.checkLine);
 
 		this.i = 0;
-		process.stdout.write(`${this.chars[this.i]} ${this.message}`);
+		process.stdout.write(`${this.chars[this.i]} ${this.message}${this.status ? ' ' + this.status : ''}`);
 		this.interval = setInterval(() => {
 			this.i = (this.i + 1) % this.chars.length;
-			process.stdout.write(`\r${this.chars[this.i]} ${this.message}`);
+			process.stdout.write(`\r${this.chars[this.i]} ${this.message}${this.status ? ' ' + this.status : ''}`);
 		}, 80);
 	}
 
@@ -47,6 +48,7 @@ class Spinner {
 		this.rl?.close();
 		this.rl = null;
 		this.interval = null;
+		this.status = '';
 		process.stdout.write('\r\x1b[K');
 	}
 }

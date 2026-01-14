@@ -10,4 +10,4 @@
     - Run operation?
     - Tool for logging in to your Fabric account / cluster
     - Tool for deploying to Fabric
-- Reporting on total token usage
+- Decoupling to prepare for socketization
