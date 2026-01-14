@@ -2,6 +2,7 @@ import { tool } from '@openai/agents';
 import { z } from 'zod';
 import { isIgnored } from '../../utils/aiignore.ts';
 import { harperProcess } from '../../utils/harperProcess.ts';
+import { sleep } from '../../utils/sleep.ts';
 
 const ToolParameters = z.object({
 	directoryName: z
@@ -25,7 +26,9 @@ export const startHarperTool = tool({
 
 		try {
 			harperProcess.start(directoryName);
-			return `Successfully started Harper application in '${directoryName}'.`;
+			await sleep(5000);
+			const logs = harperProcess.getAndClearLogs();
+			return `Successfully started Harper application in '${directoryName}' with initial logs:\n${logs}`;
 		} catch (error) {
 			return `Error starting Harper application: ${error}`;
 		}
