@@ -10,16 +10,13 @@ import { cleanUpAndSayBye } from './utils/cleanUpAndSayBye.ts';
 import { harperResponse } from './utils/harperResponse.ts';
 import { spinner } from './utils/spinner.ts';
 
+const argumentTruncationPoint = 100;
 const MODEL_PRICES: Record<string, { input: number; output: number }> = {
-	'gpt-4o': { input: 2.50 / 1_000_000, output: 10.00 / 1_000_000 },
-	'gpt-4o-mini': { input: 0.15 / 1_000_000, output: 0.60 / 1_000_000 },
-	'o1': { input: 15.00 / 1_000_000, output: 60.00 / 1_000_000 },
-	'o1-mini': { input: 1.10 / 1_000_000, output: 4.40 / 1_000_000 },
-	'gpt-5.2': { input: 10.00 / 1_000_000, output: 30.00 / 1_000_000 },
+	'gpt-5.2': { input: 1.75 / 1_000_000, output: 14.00 / 1_000_000 },
 };
 
-function calculateCost(model: string, inputTokens: number, outputTokens: number): number {
-	const prices = MODEL_PRICES[model] || MODEL_PRICES['gpt-4o']!;
+function calculateCost(model: string | undefined, inputTokens: number, outputTokens: number): number {
+	const prices = MODEL_PRICES[model || 'gpt-5.2'] || MODEL_PRICES['gpt-5.2']!;
 	return inputTokens * prices.input + outputTokens * prices.output;
 }
 
@@ -81,11 +78,12 @@ async function main() {
 				emptyLines += 1;
 				if (emptyLines >= 2) {
 					if (totalInputTokens > 0 || totalOutputTokens > 0) {
+						const fmt = (n: number) => new Intl.NumberFormat().format(n);
 						console.log(
 							chalk.dim(
-								`Final session usage: ${chalk.cyan(totalInputTokens)} input, ${
-									chalk.cyan(totalOutputTokens)
-								} output tokens. Total cost: ${chalk.cyan('$' + totalCost.toFixed(4))}`,
+								`Final session usage: ${chalk.cyan(fmt(totalInputTokens))} input, ${
+									chalk.cyan(fmt(totalOutputTokens))
+								} output tokens. Total cost: ~${chalk.cyan('$' + totalCost.toFixed(4))}`,
 							),
 						);
 					}
@@ -113,12 +111,12 @@ async function main() {
 
 		for await (const event of stream) {
 			const usage = stream.state.usage;
-			const modelName = typeof agent.model === 'string' ? agent.model : 'gpt-4o';
-			const turnCost = calculateCost(modelName, usage.inputTokens, usage.outputTokens);
+			const turnCost = calculateCost(String(agent.model), usage.inputTokens, usage.outputTokens);
+			const fmt = (n: number) => new Intl.NumberFormat().format(n);
 			spinner.status = chalk.dim(
-				`[Tokens: ${chalk.cyan(usage.inputTokens)} in, ${chalk.cyan(usage.outputTokens)} out | Cost: ${
+				`[Tokens: ${chalk.cyan(fmt(usage.inputTokens))} in, ${chalk.cyan(fmt(usage.outputTokens))} out | Cost: ${
 					chalk.cyan('$' + turnCost.toFixed(4))
-				} (Total: ${chalk.cyan('$' + (totalCost + turnCost).toFixed(4))})]`,
+				} (Total: ~${chalk.cyan('$' + (totalCost + turnCost).toFixed(4))})]`,
 			);
 
 			switch (event.type) {
@@ -163,7 +161,7 @@ async function main() {
 							: item.arguments
 							? JSON.stringify(item.arguments)
 							: '';
-						const displayedArgs = args ? `(${args.slice(0, 50)}${args.length > 50 ? '...' : ''})` : '()';
+						const displayedArgs = args ? `(${args.slice(0, argumentTruncationPoint)}${args.length > argumentTruncationPoint ? '...' : ''})` : '()';
 						console.log(`\n${chalk.yellow('🛠️')}  ${chalk.cyan(name)}${chalk.dim(displayedArgs)}`);
 						atStartOfLine = true;
 						spinner.start();
