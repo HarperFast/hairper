@@ -17,6 +17,15 @@ export const hitHarperAPITool = tool({
 	name: 'hitHarperAPITool',
 	description: 'Performs a request against the running Harper API. Use /openapi to look up Harper APIs.',
 	parameters: ToolParameters,
+	needsApproval: async (_runContext, input, _callId) => {
+		if (input.method === 'DELETE') {
+			const segments = (input.path || '').split('/').filter(Boolean);
+			if (segments.length <= 1) {
+				return true;
+			}
+		}
+		return false;
+	},
 	async execute({ path = '/openapi', port, method = 'GET', body }: z.infer<typeof ToolParameters>) {
 		try {
 			const effectivePort = port ?? (harperProcess.running ? harperProcess.httpPort : undefined);
