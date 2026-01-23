@@ -24,11 +24,9 @@
 		"@openai/agents": "^0.3.7",
 		"chalk": "^5.6.2",
 		"dotenv": "^17.2.3",
-		"unzipper": "^0.12.3",
 		"zod": "^4.3.5"
 	},
 	"devDependencies": {
-		"@types/unzipper": "^0.10.11",
 		"dprint": "^0.51.1",
 		"harperdb": "^4.7.15",
 		"oxlint": "^1.38.0",
