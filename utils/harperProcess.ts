@@ -18,6 +18,10 @@ class HarperProcess {
 		return this.externalPid !== null;
 	}
 
+	get startedByHairper(): boolean {
+		return this.childProcess !== null;
+	}
+
 	private updateExternalStatus(): void {
 		try {
 			const status = execSync('harper status', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
