@@ -31,6 +31,10 @@ export function loadAiIgnore() {
  * @returns True if the path is ignored, false otherwise.
  */
 export function isIgnored(filePath: string): boolean {
+	const pathParts = path.normalize(filePath).split(path.sep);
+	if (pathParts.includes('.aiignore')) {
+		return true;
+	}
 	loadAiIgnore();
 	if (ignorePatterns.length === 0) { return false; }
 
