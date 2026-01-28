@@ -1,4 +1,4 @@
-![](assets/baileys-awesome-logo-for-hairper.png)
+![](assets/baileys-awesome-logo-for-hairper.png) ![npx -y hairper](./README.svg)
 
 # Hairper
 
