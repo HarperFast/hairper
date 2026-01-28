@@ -92,6 +92,7 @@ async function main() {
 				session,
 				stream: true,
 				signal,
+				maxTurns: 30,
 			});
 			approvalState = null;
 
