@@ -1,12 +1,12 @@
 name: Release
 
 on:
-  #  merge_group:
-  #    branches:
-  #      - main
-  #  push:
-  #    branches:
-  #      - main
+  merge_group:
+    branches:
+      - main
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 # Needed for semantic-release to create GitHub releases and publish to npm via OIDC
