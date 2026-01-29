@@ -1,8 +1,6 @@
 ![](assets/baileys-awesome-logo-for-hairper.png) ![npx -y hairper](./README.svg)
 
-# Hairper
-
-AI to help you with Harper app management.
+AI to help you with Harper app creation and management.
 
 ## Prerequisites
 

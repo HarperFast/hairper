@@ -46,10 +46,36 @@ async function main() {
 			: 'What kind of Harper app do you want to make together?',
 	);
 
+	let atStartOfLine = true;
 	const session = new OpenAIResponsesCompactionSession({
 		underlyingSession: new MemorySession(),
 		model: 'gpt-4o-mini',
-	});
+	}) as OpenAIResponsesCompactionSession & {
+		runCompaction: typeof OpenAIResponsesCompactionSession.prototype.runCompaction;
+	};
+
+	const originalRunCompaction = session.runCompaction.bind(session);
+	session.runCompaction = async (args) => {
+		const originalMessage = spinner.message;
+		spinner.message = 'Compacting conversation history...';
+		const wasSpinning = spinner.isSpinning;
+		if (!wasSpinning) {
+			if (!atStartOfLine) {
+				process.stdout.write('\n');
+				atStartOfLine = true;
+			}
+			await new Promise((resolve) => setTimeout(resolve, 50));
+			spinner.start();
+		}
+		try {
+			return await originalRunCompaction(args);
+		} finally {
+			if (!wasSpinning) {
+				spinner.stop();
+			}
+			spinner.message = originalMessage;
+		}
+	};
 	let emptyLines = 0;
 	let approvalState: any | null = null;
 
@@ -60,6 +86,7 @@ async function main() {
 			spinner.stop();
 			controller.abort();
 			harperResponse('<thought interrupted>');
+			atStartOfLine = true;
 		}
 	};
 
@@ -96,7 +123,7 @@ async function main() {
 			approvalState = null;
 
 			let hasStartedResponse = false;
-			let atStartOfLine = true;
+			atStartOfLine = true;
 
 			for await (const event of stream) {
 				spinner.status = costTracker.getStatusString(stream.state.usage, String(agent.model));
@@ -206,6 +233,7 @@ async function main() {
 			spinner.stop();
 			process.stdout.write('\n');
 			harperResponse(chalk.red(`Error: ${error.message || error}`));
+			atStartOfLine = true;
 			approvalState = null;
 		}
 	}

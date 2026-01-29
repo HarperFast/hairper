@@ -7,7 +7,7 @@ class Spinner {
 	private interval: NodeJS.Timeout | null = null;
 	private chars = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 	private i = 0;
-	private readonly message: string;
+	public message: string;
 	public status = '';
 	private rl: Interface | null = null;
 
@@ -20,6 +20,10 @@ class Spinner {
 
 	constructor(message: string = 'Thinking...') {
 		this.message = message;
+	}
+
+	public get isSpinning() {
+		return this.interval !== null;
 	}
 
 	start() {
@@ -35,10 +39,10 @@ class Spinner {
 		this.rl.on('line', this.checkLine);
 
 		this.i = 0;
-		process.stdout.write(`${this.chars[this.i]} ${this.message}${this.status ? ' ' + this.status : ''}`);
+		process.stdout.write(`${this.chars[this.i]} ${this.message}${this.status ? ' ' + this.status : ''}\x1b[K`);
 		this.interval = setInterval(() => {
 			this.i = (this.i + 1) % this.chars.length;
-			process.stdout.write(`\r${this.chars[this.i]} ${this.message}${this.status ? ' ' + this.status : ''}`);
+			process.stdout.write(`\r${this.chars[this.i]} ${this.message}${this.status ? ' ' + this.status : ''}\x1b[K`);
 		}, 80);
 	}
 
