@@ -3,36 +3,65 @@
 	"description": "AI to help you with Harper app management",
 	"version": "0.0.1",
 	"main": "index.js",
+	"repository": "github:HarperFast/hairper",
+	"bugs": {
+		"url": "https://github.com/harperfast/hairper/issues"
+	},
+	"homepage": "https://github.com/harperfast",
 	"scripts": {
+		"commitlint": "commitlint --edit",
 		"start": "tsx ./agent.ts",
 		"dev": "tsx watch ./agent.ts",
 		"lint": "oxlint .",
 		"lint:fix": "oxlint . --fix",
+		"prepare": "husky",
 		"format": "dprint check",
 		"format:fix": "dprint fmt",
 		"format:staged": "dprint check --staged",
 		"test": "vitest --run",
+		"test:coverage": "vitest run --coverage",
 		"test:watch": "vitest"
 	},
 	"bin": {
 		"hairper": "./agent.ts"
 	},
 	"keywords": [],
-	"author": "",
+	"author": {
+		"name": "HarperDB",
+		"email": "support@harperdb.io"
+	},
+	"files": [
+		"agent.ts",
+		"tools/",
+		"utils/",
+		"!**/*.test.ts"
+	],
 	"license": "None",
 	"type": "module",
 	"dependencies": {
 		"@openai/agents": "^0.3.7",
 		"chalk": "^5.6.2",
+		"cross-spawn": "^7.0.6",
 		"dotenv": "^17.2.3",
 		"zod": "^4.3.5"
 	},
 	"devDependencies": {
+		"@commitlint/cli": "^20.0.0",
+		"@commitlint/config-conventional": "^20.0.0",
+		"@semantic-release/commit-analyzer": "^13.0.1",
+		"@semantic-release/git": "^10.0.1",
+		"@semantic-release/github": "^12.0.2",
+		"@semantic-release/npm": "^13.1.1",
+		"@semantic-release/release-notes-generator": "^14.1.0",
+		"@vitest/coverage-v8": "^4.0.17",
+		"conventional-changelog-conventionalcommits": "^9.1.0",
 		"dprint": "^0.51.1",
 		"harperdb": "^4.7.15",
+		"husky": "^9.1.7",
 		"oxlint": "^1.38.0",
 		"tsx": "^4.21.0",
 		"typescript": "^5.9.3",
+		"semantic-release": "^25.0.2",
 		"vitest": "^4.0.17"
 	}
 }
