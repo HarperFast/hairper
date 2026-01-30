@@ -11,7 +11,10 @@ export const setInterpreterAutoApproveTool = tool({
 	description:
 		'Enable or disable automatic approval for code interpreter by setting CODE_INTERPRETER_AUTO_APPROVE=1 or 0 in .env and current process.',
 	parameters: SetInterpreterAutoApproveParameters,
-	needsApproval: true,
+	needsApproval: async (_runContext, { autoApprove }) => {
+		const newValue = autoApprove ? '1' : '0';
+		return process.env.CODE_INTERPRETER_AUTO_APPROVE !== newValue;
+	},
 	async execute({ autoApprove }: z.infer<typeof SetInterpreterAutoApproveParameters>) {
 		const newValue = autoApprove ? '1' : '0';
 		if (process.env.CODE_INTERPRETER_AUTO_APPROVE === newValue) {

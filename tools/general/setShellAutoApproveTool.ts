@@ -11,7 +11,10 @@ export const setShellAutoApproveTool = tool({
 	description:
 		'Enable or disable automatic approval for shell commands by setting SHELL_AUTO_APPROVE=1 or 0 in .env and current process.',
 	parameters: SetShellAutoApproveParameters,
-	needsApproval: true,
+	needsApproval: async (_runContext, { autoApprove }) => {
+		const newValue = autoApprove ? '1' : '0';
+		return process.env.SHELL_AUTO_APPROVE !== newValue;
+	},
 	async execute({ autoApprove }: z.infer<typeof SetShellAutoApproveParameters>) {
 		const newValue = autoApprove ? '1' : '0';
 		if (process.env.SHELL_AUTO_APPROVE === newValue) {
