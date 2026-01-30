@@ -8,17 +8,22 @@ export function trackCompaction(session: OpenAIResponsesCompactionSession) {
 		const originalMessage = spinner.message;
 		spinner.message = 'Compacting conversation history...';
 		const wasSpinning = spinner.isSpinning;
+		let timeout: NodeJS.Timeout | null = null;
 		if (!wasSpinning) {
 			if (!trackedState.atStartOfLine) {
 				process.stdout.write('\n');
 				trackedState.atStartOfLine = true;
 			}
-			await new Promise((resolve) => setTimeout(resolve, 50));
-			spinner.start();
+			timeout = setTimeout(() => {
+				spinner.start();
+			}, 50);
 		}
 		try {
 			return await originalRunCompaction(args);
 		} finally {
+			if (timeout) {
+				clearTimeout(timeout);
+			}
 			if (!wasSpinning) {
 				spinner.stop();
 			}
