@@ -66,7 +66,7 @@ async function main() {
 			if (!task) {
 				trackedState.emptyLines += 1;
 				if (trackedState.emptyLines >= 2) {
-					handleExit();
+					return handleExit();
 				}
 				continue;
 			}
