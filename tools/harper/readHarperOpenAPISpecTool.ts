@@ -1,14 +1,11 @@
-import { tool } from '@openai/agents';
-import { z } from 'zod';
+import { tool } from 'ai';
+import { z } from 'zod/v3';
 import { harperProcess } from '../../utils/harperProcess.ts';
 
-const ToolParameters = z.object({});
-
 export const readHarperOpenAPISpecTool = tool({
-	name: 'readHarperOpenAPISpecTool',
 	description: 'Reads the OpenAPI spec of a started Harper app.',
-	parameters: ToolParameters,
-	async execute() {
+	inputSchema: z.object({}),
+	execute: async () => {
 		try {
 			if (!harperProcess.running) {
 				return `Error: No Harper application is currently running.`;

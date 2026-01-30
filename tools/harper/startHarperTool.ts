@@ -1,20 +1,15 @@
-import { tool } from '@openai/agents';
-import { z } from 'zod';
+import { tool } from 'ai';
+import { z } from 'zod/v3';
 import { isIgnored } from '../../utils/aiignore.ts';
 import { harperProcess } from '../../utils/harperProcess.ts';
 
-const ToolParameters = z.object({
-	directoryName: z
-		.string()
-		.describe('The name of the directory that the Harper app is in.'),
-});
-
 export const startHarperTool = tool({
-	name: 'startHarperTool',
 	description:
 		'Starts a Harper app background process, allowing you to observe the app in action (by readHarperLogsTool, readHarperOpenAPISpecTool, openBrowserTool, etc).',
-	parameters: ToolParameters,
-	async execute({ directoryName }: z.infer<typeof ToolParameters>) {
+	inputSchema: z.object({
+		directoryName: z.string().describe('The name of the directory that the Harper app is in.'),
+	}),
+	execute: async ({ directoryName }) => {
 		if (isIgnored(directoryName)) {
 			return `Error: Target directory ${directoryName} is restricted by .aiignore`;
 		}

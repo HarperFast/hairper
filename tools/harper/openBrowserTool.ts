@@ -1,21 +1,16 @@
-import { tool } from '@openai/agents';
+import { tool } from 'ai';
 import { spawn } from 'node:child_process';
 import { platform } from 'node:os';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 const alreadyOpened = new Set<string>();
 
-const ToolParameters = z.object({
-	url: z
-		.string()
-		.describe('The starting URL of the browser (i.e. http://localhost:9926)'),
-});
-
 export const openBrowserTool = tool({
-	name: 'openBrowserTool',
 	description: "Opens the requested URL in the user's browser.",
-	parameters: ToolParameters,
-	async execute({ url }: z.infer<typeof ToolParameters>) {
+	inputSchema: z.object({
+		url: z.string().describe('The starting URL of the browser (i.e. http://localhost:9926)'),
+	}),
+	execute: async ({ url }) => {
 		try {
 			if (alreadyOpened.has(url)) {
 				return `Browser for '${url}' is already open.`;

@@ -1,18 +1,28 @@
-#!/usr/bin/env /Users/dawson/.nvm/versions/node/v24.11.1/bin/node
+#!/usr/bin/env node
 import 'dotenv/config';
-import { Agent, MemorySession, run } from '@openai/agents';
+import { streamText, type ModelMessage, stepCountIs } from 'ai';
 import chalk from 'chalk';
+import createDebug from 'debug';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { createTools } from './tools/factory.ts';
 import { askQuestion } from './utils/askQuestion.ts';
 import { cleanUpAndSayBye } from './utils/cleanUpAndSayBye.ts';
+import { ensureApiKey, getConfig, getModel } from './utils/config.ts';
 import { harperResponse } from './utils/harperResponse.ts';
 import { spinner } from './utils/spinner.ts';
 
+const debug = createDebug('hairper:agent');
+
 async function main() {
-	if (!process.env['OPENAI_API_KEY']) {
-		harperResponse(chalk.red('Error: OPENAI_API_KEY is not set.'));
+	const config = getConfig();
+	debug('Starting hairper agent...');
+	debug('Config loaded: %O', config);
+
+	try {
+		ensureApiKey(config);
+	} catch (error) {
+		harperResponse(chalk.red(`Error: ${(error as Error).message}`));
 		console.log(`Please set it in your environment or in a ${chalk.cyan('.env')} file.`);
 		process.exit(1);
 	}
@@ -22,15 +32,11 @@ async function main() {
 
 	console.log(chalk.dim(`Working directory: ${chalk.cyan(workspaceRoot)}`));
 	console.log(chalk.dim(`Harper app detected in it: ${chalk.cyan(harperAppExists ? 'Yes' : 'No')}`));
+	console.log(chalk.dim(`Provider: ${chalk.cyan(config.provider)} | Model: ${chalk.cyan(config.model)}`));
 	console.log(chalk.dim(`Press Ctrl+C or hit enter twice to exit.\n`));
 
 	const vibing = harperAppExists ? 'updating' : 'creating';
-	const agent = new Agent({
-		name: 'Harper App Development Assistant',
-		model: 'gpt-5.2',
-		instructions: `You are working on ${vibing} the harper app in ${workspaceRoot} with the user.`,
-		tools: createTools(),
-	});
+	const systemPrompt = `You are working on ${vibing} the harper app in ${workspaceRoot} with the user.`;
 
 	harperResponse(
 		harperAppExists
@@ -38,7 +44,7 @@ async function main() {
 			: 'What kind of Harper app do you want to make together?',
 	);
 
-	const session = new MemorySession();
+	const messages: ModelMessage[] = [];
 	let emptyLines = 0;
 
 	while (true) {
@@ -53,64 +59,119 @@ async function main() {
 		}
 		emptyLines = 0;
 
+		messages.push({ role: 'user', content: task });
+
+		debug('Starting streamText request...');
+		debug('Config: %O', config);
+		debug('Messages count: %d', messages.length);
+		debug('Last message: %O', messages[messages.length - 1]);
+
 		spinner.start();
 
-		const stream = await run(
-			agent,
-			task,
-			{
-				session,
-				stream: true,
-			},
-		);
+		try {
+			const result = streamText({
+                model: getModel(config),
+                system: systemPrompt,
+                messages,
+                tools: createTools(),
+                stopWhen: stepCountIs(10),
 
-		let hasStartedResponse = false;
-		let atStartOfLine = true;
-
-		for await (const event of stream) {
-			if (event.type === 'raw_model_stream_event') {
-				const data = event.data as any;
-				if (data.type === 'response_started') {
-					if (!atStartOfLine) {
-						process.stdout.write('\n');
-						atStartOfLine = true;
+                onStepFinish: ({ toolCalls }) => {
+					if (toolCalls && toolCalls.length > 0) {
+						for (const toolCall of toolCalls) {
+							spinner.stop();
+							// Handle both typed and dynamic tool calls
+							const input = 'input' in toolCall ? toolCall.input : {};
+							const args = JSON.stringify(input);
+							const displayArgs = args.length <= 80 ? `(${args})` : '';
+							console.log(`\n${chalk.yellow('🛠️')}  ${chalk.cyan(toolCall.toolName)}${chalk.dim(displayArgs)}`);
+							spinner.start();
+						}
 					}
-					spinner.start();
-				} else if (data.type === 'output_text_delta') {
-					spinner.stop();
-					if (!hasStartedResponse) {
-						process.stdout.write(`${chalk.bold('Harper:')} `);
-						hasStartedResponse = true;
-					}
-					process.stdout.write(chalk.cyan(data.delta));
-					atStartOfLine = data.delta.endsWith('\n');
-				} else if (data.type === 'response_done') {
-					spinner.stop();
-					atStartOfLine = true;
 				}
-			} else if (event.type === 'agent_updated_stream_event') {
+            });
+
+			debug('streamText returned, consuming textStream...');
+			debug('Result object keys: %s', Object.keys(result).join(', '));
+
+			// Try to get the full text to see if there's any content (async)
+			(async () => {
+				try {
+					const text = await result.text;
+					debug('Full text from promise: "%s" (length: %d)', text, text.length);
+				} catch (e) {
+					debug('Error getting full text: %O', e);
+				}
+			})();
+
+			let hasStartedResponse = false;
+			let fullResponse = '';
+			let chunkCount = 0;
+
+			for await (const chunk of result.textStream) {
+				chunkCount++;
+				if (chunkCount === 1) {
+					debug('First chunk received');
+				}
 				spinner.stop();
-				console.log(`\n${chalk.magenta('👤')} ${chalk.bold('Agent switched to:')} ${chalk.italic(event.agent.name)}`);
-				atStartOfLine = true;
-				spinner.start();
-			} else if (event.type === 'run_item_stream_event') {
-				if (event.name === 'tool_called') {
-					spinner.stop();
-					const item = event.item.rawItem ?? event.item;
-					const name = item.name || item.type || 'tool';
-					let args = item.arguments || '';
-					if (typeof args !== 'string') { args = JSON.stringify(args); }
-					const displayArgs = args && args.length <= 80 ? `(${args})` : '';
-					// console.log(item);
-					console.log(`\n${chalk.yellow('🛠️')}  ${chalk.cyan(name)}${chalk.dim(displayArgs)}`);
-					atStartOfLine = true;
-					spinner.start();
+				if (!hasStartedResponse) {
+					process.stdout.write(`${chalk.bold('Harper:')} `);
+					hasStartedResponse = true;
 				}
+				process.stdout.write(chalk.cyan(chunk));
+				fullResponse += chunk;
 			}
-		}
-		spinner.stop();
-		if (!atStartOfLine || hasStartedResponse) {
-			process.stdout.write('\n\n');
+
+			debug('Stream finished, received %d chunks', chunkCount);
+			debug('Full response length: %d', fullResponse.length);
+
+			// Try to get additional metadata from the result
+			try {
+				const usage = await result.usage;
+				debug('Token usage: %O', usage);
+			} catch (e) {
+				debug('Could not get usage: %O', e);
+			}
+
+			try {
+				const finishReason = await result.finishReason;
+				debug('Finish reason: %s', finishReason);
+			} catch (e) {
+				debug('Could not get finish reason: %O', e);
+			}
+
+			try {
+				const toolCalls = await result.toolCalls;
+				debug('Tool calls: %O', toolCalls);
+			} catch (e) {
+				debug('Could not get tool calls: %O', e);
+			}
+
+			try {
+				const steps = await result.steps;
+				debug('Steps count: %d', steps.length);
+			} catch (e) {
+				debug('Could not get steps: %O', e);
+			}
+
+			spinner.stop();
+
+			if (hasStartedResponse) {
+				process.stdout.write('\n\n');
+			}
+
+			// Add assistant response to conversation history
+			if (fullResponse) {
+				messages.push({ role: 'assistant', content: fullResponse });
+			} else {
+				debug('Warning: No response content received');
+			}
+		} catch (error) {
+			spinner.stop();
+			const err = error as Error;
+			harperResponse(chalk.red(`Error: ${err.message}`));
+			debug('Full error: %O', err);
+			console.log('');
 		}
 	}
 }

@@ -1,21 +1,16 @@
-import { tool } from '@openai/agents';
+import { tool } from 'ai';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { isIgnored } from '../../utils/aiignore.ts';
 import { applyTemplateToDirectory } from '../../utils/applyTemplateToDirectory.ts';
 
-const ToolParameters = z.object({
-	directoryName: z
-		.string()
-		.describe('The name of the directory to download the template into.'),
-});
-
 export const createNewHarperApplicationTool = tool({
-	name: 'createNewHarperApplicationTool',
 	description: 'Creates a new harper application by downloading the application template zip archive.',
-	parameters: ToolParameters,
-	async execute({ directoryName }: z.infer<typeof ToolParameters>) {
+	inputSchema: z.object({
+		directoryName: z.string().describe('The name of the directory to download the template into.'),
+	}),
+	execute: async ({ directoryName }) => {
 		if (isIgnored(directoryName)) {
 			return `Error: Target directory ${directoryName} is restricted by .aiignore`;
 		}

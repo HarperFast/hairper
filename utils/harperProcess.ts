@@ -19,6 +19,11 @@ class HarperProcess {
 			stdio: ['ignore', 'pipe', 'pipe'],
 		});
 
+		this.childProcess.on('error', (error) => {
+			this.logs.push(`Error starting harperdb: ${error.message}`);
+			this.childProcess = null;
+		});
+
 		this.childProcess.stdout?.on('data', (data) => {
 			this.logs.push(data.toString());
 		});
