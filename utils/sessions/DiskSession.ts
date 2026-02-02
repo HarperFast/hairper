@@ -1,17 +1,17 @@
 import { type AgentInputItem, MemorySession } from '@openai/agents';
-import sqlite3 from 'sqlite3';
+import { Database } from 'sqlite3';
 
 /**
  * A session that persists items to a SQLite database on disk.
  * Extends MemorySession to provide in-memory caching and basic session functionality.
  */
 export class DiskSession extends MemorySession {
-	private readonly db: sqlite3.Database;
+	private readonly db: Database;
 	private readonly ready: Promise<void>;
 
 	constructor(dbPath: string, options?: ConstructorParameters<typeof MemorySession>[0]) {
 		super(options);
-		this.db = new sqlite3.Database(dbPath);
+		this.db = new Database(dbPath);
 		this.ready = this.init(options);
 	}
 
