@@ -3,6 +3,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { z } from 'zod';
 import { isIgnored } from '../../utils/aiignore';
+import { resolvePath } from '../../utils/paths';
 
 const execFileAsync = promisify(execFile);
 
@@ -18,9 +19,10 @@ export const egrepTool = tool({
 	name: 'egrep',
 	description: 'File pattern searcher.',
 	parameters: ToolParameters,
-	async execute({ path, pattern }: z.infer<typeof ToolParameters>) {
+	async execute({ path: searchPath, pattern }: z.infer<typeof ToolParameters>) {
 		try {
-			const { stdout } = await execFileAsync('grep', ['-Eir', pattern, path]);
+			const resolvedPath = resolvePath(process.cwd(), searchPath);
+			const { stdout } = await execFileAsync('grep', ['-Eir', pattern, resolvedPath]);
 			return stdout
 				.split('\n')
 				.filter(line => {

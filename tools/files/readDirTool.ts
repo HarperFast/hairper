@@ -3,6 +3,7 @@ import { readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
 import { isIgnored } from '../../utils/aiignore';
+import { resolvePath } from '../../utils/paths';
 
 const ToolParameters = z.object({
 	directoryName: z
@@ -16,8 +17,9 @@ export const readDirTool = tool({
 	parameters: ToolParameters,
 	async execute({ directoryName }: z.infer<typeof ToolParameters>) {
 		try {
-			const files = await readdir(directoryName, 'utf-8');
-			return files.filter(file => !isIgnored(path.join(directoryName, file)));
+			const resolvedPath = resolvePath(process.cwd(), directoryName);
+			const files = await readdir(resolvedPath, 'utf-8');
+			return files.filter(file => !isIgnored(path.join(resolvedPath, file)));
 		} catch (error) {
 			return `Error reading directory: ${error}`;
 		}

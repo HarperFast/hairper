@@ -2,7 +2,7 @@ import { tool } from '@openai/agents';
 import { execSync } from 'node:child_process';
 import path from 'node:path';
 import { z } from 'zod';
-import { isIgnored } from '../../utils/aiignore';
+import { resolvePath } from '../../utils/paths';
 
 const ToolParameters = z.object({
 	directoryName: z
@@ -16,11 +16,7 @@ const ToolParameters = z.object({
 });
 
 export async function execute({ directoryName, template }: z.infer<typeof ToolParameters>) {
-	const resolvedPath = path.resolve(directoryName);
-
-	if (isIgnored(resolvedPath)) {
-		return `Error: Target directory ${resolvedPath} is restricted by .aiignore`;
-	}
+	const resolvedPath = resolvePath(process.cwd(), directoryName);
 
 	const currentCwd = process.cwd();
 	const isCurrentDir = resolvedPath === currentCwd;

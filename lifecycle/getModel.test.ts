@@ -8,7 +8,10 @@ vi.mock('@ai-sdk/openai', () => ({ openai: vi.fn((name) => ({ name, provider: 'o
 vi.mock('@openai/agents-extensions', () => ({ aisdk: vi.fn((model) => ({ wrapped: model })) }));
 vi.mock('ollama-ai-provider-v2', () => ({
 	ollama: vi.fn((name) => ({ name, provider: 'ollama' })),
-	createOllama: vi.fn(() => vi.fn((name) => ({ name, provider: 'ollama-custom' }))),
+	createOllama: vi.fn((config) => {
+		const provider = vi.fn((name) => ({ name, provider: 'ollama-custom', baseURL: config.baseURL }));
+		return provider;
+	}),
 }));
 
 describe('getModel', () => {
@@ -45,10 +48,52 @@ describe('getModel', () => {
 	});
 
 	it('should use OLLAMA_BASE_URL if provided', () => {
-		process.env.OLLAMA_BASE_URL = 'http://localhost:11434';
+		process.env.OLLAMA_BASE_URL = 'http://localhost:11434/api';
 		const result: any = getModel('ollama-llama3');
 		expect(result.wrapped.provider).toBe('ollama-custom');
-		expect(result.wrapped.name).toBe('llama3');
+		expect(result.wrapped.baseURL).toBe('http://localhost:11434/api');
+		delete process.env.OLLAMA_BASE_URL;
+	});
+
+	it('should normalize OLLAMA_BASE_URL - add http, port and /api', () => {
+		process.env.OLLAMA_BASE_URL = '192.168.13.37';
+		const result: any = getModel('ollama-llama3');
+		expect(result.wrapped.baseURL).toBe('http://192.168.13.37:11434/api');
+		delete process.env.OLLAMA_BASE_URL;
+	});
+
+	it('should normalize OLLAMA_BASE_URL - add port and /api if missing', () => {
+		process.env.OLLAMA_BASE_URL = 'https://my-ollama-server';
+		const result: any = getModel('ollama-llama3');
+		expect(result.wrapped.baseURL).toBe('https://my-ollama-server:11434/api');
+		delete process.env.OLLAMA_BASE_URL;
+	});
+
+	it('should normalize OLLAMA_BASE_URL - add /api if missing but port exists', () => {
+		process.env.OLLAMA_BASE_URL = 'http://localhost:12345';
+		const result: any = getModel('ollama-llama3');
+		expect(result.wrapped.baseURL).toBe('http://localhost:12345/api');
+		delete process.env.OLLAMA_BASE_URL;
+	});
+
+	it('should normalize OLLAMA_BASE_URL - handle trailing slash and add /api', () => {
+		process.env.OLLAMA_BASE_URL = 'http://localhost:11434/';
+		const result: any = getModel('ollama-llama3');
+		expect(result.wrapped.baseURL).toBe('http://localhost:11434/api');
+		delete process.env.OLLAMA_BASE_URL;
+	});
+
+	it('should normalize OLLAMA_BASE_URL - add port even if /api is present', () => {
+		process.env.OLLAMA_BASE_URL = 'http://localhost/api';
+		const result: any = getModel('ollama-llama3');
+		expect(result.wrapped.baseURL).toBe('http://localhost:11434/api');
+		delete process.env.OLLAMA_BASE_URL;
+	});
+
+	it('should normalize OLLAMA_BASE_URL - handle trailing slash after /api', () => {
+		process.env.OLLAMA_BASE_URL = 'http://localhost:11434/api/';
+		const result: any = getModel('ollama-llama3');
+		expect(result.wrapped.baseURL).toBe('http://localhost:11434/api');
 		delete process.env.OLLAMA_BASE_URL;
 	});
 

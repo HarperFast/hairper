@@ -8,7 +8,9 @@ import { WorkspaceEditor } from './workspaceEditor';
 const ApplyPatchParameters = z.object({
 	type: z.enum(['create_file', 'update_file', 'delete_file']).describe('The type of operation to perform.'),
 	path: z.string().describe('The path to the file to operate on.'),
-	diff: z.string().optional().default('').describe('The diff to apply (required for create_file and update_file).'),
+	diff: z.string().optional().default('').describe(
+		'The diff to apply. For create_file, every line must start with "+". For update_file, use a headerless unified diff format (start sections with "@@", and use "+", "-", or " " for lines). Do not include markers like "*** Begin Patch" or "*** Add File:".',
+	),
 });
 
 export function createApplyPatchTool() {
@@ -18,6 +20,7 @@ export function createApplyPatchTool() {
 		description: 'Applies a patch (create, update, or delete a file) to the workspace.',
 		parameters: ApplyPatchParameters,
 		execute: async (operation) => {
+			console.log(operation);
 			switch (operation.type) {
 				case 'create_file':
 					if (!operation.diff) { throw new Error('diff is required for create_file'); }

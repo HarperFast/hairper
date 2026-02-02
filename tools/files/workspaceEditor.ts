@@ -2,7 +2,8 @@ import { applyDiff } from '@openai/agents';
 import type { ApplyPatchResult, Editor } from '@openai/agents-core';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { isIgnored } from '../../utils/aiignore';
+import { normalizeDiff } from '../../utils/normalizeDiff';
+import { resolvePath } from '../../utils/paths';
 
 export class WorkspaceEditor implements Editor {
 	private readonly root: string;
@@ -12,41 +13,37 @@ export class WorkspaceEditor implements Editor {
 	}
 
 	async createFile(operation: CreateFileOperation): Promise<ApplyPatchResult | void> {
-		const targetPath = await this.resolve(operation.path);
-		await mkdir(path.dirname(targetPath), { recursive: true });
-		const content = applyDiff('', operation.diff, 'create');
-		await writeFile(targetPath, content, 'utf8');
-		return { status: 'completed', output: `Created ${operation.path}` };
+		try {
+			const targetPath = resolvePath(this.root, operation.path);
+			await mkdir(path.dirname(targetPath), { recursive: true });
+			const normalizedDiff = normalizeDiff(operation.diff);
+			const content = applyDiff('', normalizedDiff, 'create');
+			await writeFile(targetPath, content, 'utf8');
+			return { status: 'completed', output: `Created ${operation.path}` };
+		} catch (err) {
+			console.log('error during create file', err);
+			return { status: 'failed', output: String(err) };
+		}
 	}
 
 	async updateFile(operation: UpdateFileOperation): Promise<ApplyPatchResult | void> {
-		const targetPath = await this.resolve(operation.path);
+		const targetPath = resolvePath(this.root, operation.path);
 		const original = await readFile(targetPath, 'utf8').catch((error: any) => {
 			if (error?.code === 'ENOENT') {
 				throw new Error(`Cannot update missing file: ${operation.path}`);
 			}
 			throw error;
 		});
-		const patched = applyDiff(original, operation.diff);
+		const normalizedDiff = normalizeDiff(operation.diff);
+		const patched = applyDiff(original, normalizedDiff);
 		await writeFile(targetPath, patched, 'utf8');
 		return { status: 'completed', output: `Updated ${operation.path}` };
 	}
 
 	async deleteFile(operation: DeleteFileOperation): Promise<ApplyPatchResult | void> {
-		const targetPath = await this.resolve(operation.path);
+		const targetPath = resolvePath(this.root, operation.path);
 		await rm(targetPath, { force: true });
 		return { status: 'completed', output: `Deleted ${operation.path}` };
-	}
-
-	private async resolve(relativePath: string): Promise<string> {
-		if (isIgnored(relativePath)) {
-			throw new Error(`Operation restricted by .aiignore: ${relativePath}`);
-		}
-		const resolved = path.resolve(this.root, relativePath);
-		if (!resolved.startsWith(this.root)) {
-			throw new Error(`Operation outside workspace: ${relativePath}`);
-		}
-		return resolved;
 	}
 }
 

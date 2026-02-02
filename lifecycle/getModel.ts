@@ -30,11 +30,37 @@ export function getModel(modelName: string | null, defaultModel: string = 'gpt-5
 	}
 
 	if (modelName.startsWith('ollama-')) {
-		const ollamaProvider = process.env.OLLAMA_BASE_URL
-			? createOllama({ baseURL: process.env.OLLAMA_BASE_URL })
+		const ollamaBaseUrl = process.env.OLLAMA_BASE_URL ? normalizeOllamaBaseUrl(process.env.OLLAMA_BASE_URL) : undefined;
+		const ollamaProvider = ollamaBaseUrl
+			? createOllama({ baseURL: ollamaBaseUrl })
 			: ollama;
 		return aisdk(ollamaProvider(modelName.replace('ollama-', '')));
 	}
 
 	return aisdk(openai(modelName));
+}
+
+function normalizeOllamaBaseUrl(baseUrl: string): string {
+	let url = baseUrl.trim();
+	if (!url.startsWith('http://') && !url.startsWith('https://')) {
+		url = `http://${url}`;
+	}
+
+	const urlObj = new URL(url);
+	if (!urlObj.port) {
+		urlObj.port = '11434';
+	}
+
+	let pathname = urlObj.pathname;
+	if (pathname.endsWith('/')) {
+		pathname = pathname.slice(0, -1);
+	}
+
+	if (!pathname.endsWith('/api')) {
+		pathname += '/api';
+	}
+
+	urlObj.pathname = pathname;
+
+	return urlObj.toString().replace(/\/$/, '');
 }

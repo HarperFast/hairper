@@ -27,30 +27,31 @@ export function loadAiIgnore() {
 
 /**
  * Checks if a given file path should be ignored based on .aiignore patterns.
- * @param filePath The path to check.
+ * @param filePath The path to check (can be relative or absolute).
  * @returns True if the path is ignored, false otherwise.
  */
 export function isIgnored(filePath: string): boolean {
-	const pathParts = path.normalize(filePath).split(path.sep);
-	if (pathParts.includes('.aiignore')) {
+	// Always treat any path mentioning a `.aiignore` segment as ignored, regardless of location
+	const directParts = path.normalize(filePath).split(path.sep);
+	if (directParts.includes('.aiignore')) {
 		return true;
 	}
-	loadAiIgnore();
-	if (ignorePatterns.length === 0) { return false; }
 
-	let relativePath = filePath;
-	if (path.isAbsolute(filePath)) {
-		if (filePath.startsWith(process.cwd())) {
-			relativePath = path.relative(process.cwd(), filePath);
-		} else {
-			// If it's absolute but outside CWD, we don't ignore it by default
-			// unless we want to support global ignores, but .aiignore is per-project.
-			return false;
-		}
+	const absolutePath = path.resolve(process.cwd(), filePath);
+	const relativePath = path.relative(process.cwd(), absolutePath);
+
+	// If the path is outside the project root, it's not handled by .aiignore patterns
+	if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+		return false;
 	}
 
 	const normalizedPath = path.normalize(relativePath);
 	const parts = normalizedPath.split(path.sep);
+
+	loadAiIgnore();
+	if (ignorePatterns.length === 0) {
+		return false;
+	}
 
 	return ignorePatterns.some(pattern => {
 		// Handle absolute-like patterns (starting with /)

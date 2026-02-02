@@ -1,7 +1,7 @@
 import { tool } from '@openai/agents';
 import { readFile } from 'node:fs/promises';
 import { z } from 'zod';
-import { isIgnored } from '../../utils/aiignore';
+import { resolvePath } from '../../utils/paths';
 
 const ToolParameters = z.object({
 	fileName: z
@@ -14,11 +14,9 @@ export const readFileTool = tool({
 	description: 'Reads the contents of a specified file.',
 	parameters: ToolParameters,
 	async execute({ fileName }: z.infer<typeof ToolParameters>) {
-		if (isIgnored(fileName)) {
-			return `Error: Access to ${fileName} is restricted by .aiignore`;
-		}
 		try {
-			return readFile(fileName, 'utf-8');
+			const resolvedPath = resolvePath(process.cwd(), fileName);
+			return readFile(resolvedPath, 'utf-8');
 		} catch (error) {
 			return `Error reading file: ${error}`;
 		}

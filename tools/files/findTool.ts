@@ -3,6 +3,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { z } from 'zod';
 import { isIgnored } from '../../utils/aiignore';
+import { resolvePath } from '../../utils/paths';
 
 const execFileAsync = promisify(execFile);
 
@@ -20,9 +21,10 @@ export const findTool = tool({
 	name: 'find',
 	description: 'Walk a file hierarchy.',
 	parameters: ToolParameters,
-	async execute({ path, iname }: z.infer<typeof ToolParameters>) {
+	async execute({ path: searchPath, iname }: z.infer<typeof ToolParameters>) {
 		try {
-			const { stdout } = await execFileAsync('find', [path, '-iname', iname]);
+			const resolvedPath = resolvePath(process.cwd(), searchPath);
+			const { stdout } = await execFileAsync('find', [resolvedPath, '-iname', iname]);
 			return stdout
 				.split('\n')
 				.filter(line => line.trim() !== '' && !isIgnored(line))
