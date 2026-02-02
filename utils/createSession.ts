@@ -4,23 +4,11 @@ import { trackCompaction } from '../lifecycle/trackCompaction';
 import { MemoryCompactionSession } from './MemoryCompactionSession';
 
 export function createSession(compactionModel: string | null): Session {
-	if (isOpenAIModel(compactionModel || 'gpt-4o-mini')) {
-		const session = new OpenAIResponsesCompactionSession({
-			underlyingSession: new MemorySession(),
-			model: getModel(compactionModel, 'gpt-4o-mini') as any,
-		}) as OpenAIResponsesCompactionSession & {
-			runCompaction: typeof OpenAIResponsesCompactionSession.prototype.runCompaction;
-		};
-		trackCompaction(session);
-		return session;
-	}
-
-	const session = new MemoryCompactionSession({
-		underlyingSession: new MemorySession(),
-		model: getModel(compactionModel, 'gpt-4o-mini') as any,
-	}) as MemoryCompactionSession & {
-		runCompaction: typeof MemoryCompactionSession.prototype.runCompaction;
-	};
+	const underlyingSession = new MemorySession();
+	const model = getModel(compactionModel, 'gpt-4o-mini') as any;
+	const session = isOpenAIModel(compactionModel || 'gpt-4o-mini')
+		? new OpenAIResponsesCompactionSession({ underlyingSession, model })
+		: new MemoryCompactionSession({ underlyingSession, model });
 	trackCompaction(session);
 	return session;
 }
