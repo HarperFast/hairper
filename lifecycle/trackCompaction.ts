@@ -2,7 +2,7 @@ import { OpenAIResponsesCompactionSession } from '@openai/agents';
 import { spinner } from '../utils/spinner';
 import { trackedState } from './trackedState';
 
-export function trackCompaction(session: OpenAIResponsesCompactionSession) {
+export function trackCompaction(session: Pick<OpenAIResponsesCompactionSession, 'runCompaction'>) {
 	const originalRunCompaction = session.runCompaction.bind(session);
 	session.runCompaction = async (args) => {
 		const originalMessage = spinner.message;

@@ -1,11 +1,10 @@
 #!/usr/bin/env node
 import 'dotenv/config';
-import { Agent, MemorySession, OpenAIResponsesCompactionSession, run, type Session } from '@openai/agents';
+import { Agent, run } from '@openai/agents';
 import chalk from 'chalk';
-import { getModel, isOpenAIModel } from './lifecycle/getModel';
+import { getModel } from './lifecycle/getModel';
 import { parseArgs } from './lifecycle/parseArgs';
 import { sayHi } from './lifecycle/sayHi';
-import { trackCompaction } from './lifecycle/trackCompaction';
 import { trackedState } from './lifecycle/trackedState';
 import { createTools } from './tools/factory';
 import { askQuestion } from './utils/askQuestion';
@@ -16,6 +15,7 @@ import { ensureApiKey } from './utils/ensureApiKey';
 import { harperResponse } from './utils/harperResponse';
 import { spinner } from './utils/spinner';
 
+import { createSession } from './utils/createSession';
 import { handleExit } from './utils/handleExit';
 
 const argumentTruncationPoint = 100;
@@ -48,19 +48,7 @@ async function main() {
 			},
 		},
 	});
-	let session: Session;
-	if (isOpenAIModel(trackedState.model)) {
-		trackCompaction(
-			session = new OpenAIResponsesCompactionSession({
-				underlyingSession: new MemorySession(),
-				model: getModel(trackedState.compactionModel, 'gpt-4o-mini') as any,
-			}) as OpenAIResponsesCompactionSession & {
-				runCompaction: typeof OpenAIResponsesCompactionSession.prototype.runCompaction;
-			},
-		);
-	} else {
-		session = new MemorySession();
-	}
+	const session = createSession(trackedState.compactionModel);
 
 	while (true) {
 		let task: string = '';
