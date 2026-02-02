@@ -48,7 +48,7 @@ async function main() {
 			},
 		},
 	});
-	const session = createSession(trackedState.compactionModel);
+	const session = createSession(trackedState.compactionModel, trackedState.sessionPath);
 
 	while (true) {
 		let task: string = '';

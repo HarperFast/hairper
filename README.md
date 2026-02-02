@@ -88,6 +88,19 @@ hairper --compaction-model claude-3-haiku-20240307
 
 You can also set the default compaction model via the `HAIRPER_COMPACTION_MODEL` environment variable.
 
+### Session Persistence
+
+By default, `hairper` uses an in-memory session that is lost when you exit. You can persist your chat session to a SQLite database on disk using the `--session` (or `-s`) flag:
+
+```bash
+# Persist session to a file
+hairper --session ./my-session.db
+```
+
+This will save all conversation history to the specified file. If the file already exists, `hairper` will resume the session from where you left off.
+
+You can also set the default session path via the `HAIRPER_SESSION` environment variable.
+
 ### Ollama Support (Local Models)
 
 To use local models with [Ollama](https://ollama.com/), use the `ollama-` prefix:

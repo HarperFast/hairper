@@ -37,6 +37,14 @@ export function parseArgs() {
 			trackedState.compactionModel = stripQuotes(arg.slice('--compaction-model='.length));
 		} else if (arg.startsWith('compaction-model=')) {
 			trackedState.compactionModel = stripQuotes(arg.slice('compaction-model='.length));
+		} else if (arg === '--session' || arg === '-s' || arg === 'session') {
+			if (args[i + 1]) {
+				trackedState.sessionPath = stripQuotes(args[++i]!);
+			}
+		} else if (arg.startsWith('--session=')) {
+			trackedState.sessionPath = stripQuotes(arg.slice('--session='.length));
+		} else if (arg.startsWith('session=')) {
+			trackedState.sessionPath = stripQuotes(arg.slice('session='.length));
 		}
 	}
 
@@ -46,5 +54,9 @@ export function parseArgs() {
 
 	if (!trackedState.compactionModel && process.env.HAIRPER_COMPACTION_MODEL) {
 		trackedState.compactionModel = process.env.HAIRPER_COMPACTION_MODEL;
+	}
+
+	if (!trackedState.sessionPath && process.env.HAIRPER_SESSION) {
+		trackedState.sessionPath = process.env.HAIRPER_SESSION;
 	}
 }

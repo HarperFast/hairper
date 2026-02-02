@@ -36,6 +36,8 @@ ${chalk.bold('OPTIONS')}
                           For Ollama, use the ollama- prefix (e.g., ollama-llama3).
   -c, --compaction-model  Specify the compaction model to use (defaults to gpt-4o-mini).
                           Can also be set via HAIRPER_COMPACTION_MODEL environment variable.
+  -s, --session           Specify a path to a SQLite database file to persist the chat session.
+                          Can also be set via HAIRPER_SESSION environment variable.
 
 ${chalk.bold('COMMANDS')}
   help           Show help information

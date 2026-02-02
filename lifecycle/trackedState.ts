@@ -5,6 +5,7 @@ export interface TrackedState {
 	controller: AbortController | null;
 	model: string | null;
 	compactionModel: string | null;
+	sessionPath: string | null;
 }
 
 export const trackedState: TrackedState = {
@@ -14,4 +15,5 @@ export const trackedState: TrackedState = {
 	controller: null,
 	model: null,
 	compactionModel: null,
+	sessionPath: null,
 };
