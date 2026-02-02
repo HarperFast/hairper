@@ -126,27 +126,36 @@ export class DiskSession extends MemorySession {
 
 	private run(sql: string, ...params: any[]): Promise<void> {
 		return new Promise((resolve, reject) => {
-			this.db.run(sql, ...params, (err) => {
-				if (err) { reject(err); }
-				else { resolve(); }
+			this.db.run(sql, ...params, (err: Error | null) => {
+				if (err) {
+					reject(err);
+				} else {
+					resolve();
+				}
 			});
 		});
 	}
 
 	private get<T>(sql: string, ...params: any[]): Promise<T | undefined> {
 		return new Promise((resolve, reject) => {
-			this.db.get(sql, ...params, (err, row) => {
-				if (err) { reject(err); }
-				else { resolve(row as T | undefined); }
+			this.db.get(sql, ...params, (err: Error | null, row: any) => {
+				if (err) {
+					reject(err);
+				} else {
+					resolve(row as T | undefined);
+				}
 			});
 		});
 	}
 
 	private all<T>(sql: string, ...params: any[]): Promise<T[]> {
 		return new Promise((resolve, reject) => {
-			this.db.all(sql, ...params, (err, rows) => {
-				if (err) { reject(err); }
-				else { resolve(rows as T[]); }
+			this.db.all(sql, ...params, (err: Error | null, rows: any[]) => {
+				if (err) {
+					reject(err);
+				} else {
+					resolve(rows as T[]);
+				}
 			});
 		});
 	}
