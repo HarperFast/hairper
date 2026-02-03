@@ -45,7 +45,7 @@ async function main() {
 		tools: createTools(shouldNormalize),
 		modelSettings: {
 			providerData: {
-				service_tier: 'flex',
+				service_tier: trackedState.useFlexTier ? 'flex' : 'auto',
 			},
 		},
 	});
@@ -84,12 +84,6 @@ async function main() {
 			trackedState.atStartOfLine = true;
 
 			for await (const event of stream) {
-				spinner.status = costTracker.getStatusString(
-					stream.state.usage,
-					trackedState.model || 'gpt-5.2',
-					trackedState.compactionModel || 'gpt-4o-mini',
-				);
-
 				switch (event.type) {
 					case 'raw_model_stream_event':
 						const data = event.data;
@@ -111,6 +105,15 @@ async function main() {
 								trackedState.atStartOfLine = data.delta.endsWith('\n');
 								break;
 							case 'response_done':
+								const tier = (data as any).response?.providerData?.service_tier
+									|| (data as any).providerData?.service_tier;
+								if (tier) {
+									(stream.state.usage as any).serviceTier = tier;
+									const entries = stream.state.usage.requestUsageEntries;
+									if (entries && entries.length > 0) {
+										(entries[entries.length - 1] as any).serviceTier = tier;
+									}
+								}
 								spinner.stop();
 								trackedState.atStartOfLine = true;
 								break;
@@ -154,6 +157,12 @@ async function main() {
 						}
 						break;
 				}
+
+				spinner.status = costTracker.getStatusString(
+					stream.state.usage,
+					trackedState.model || 'gpt-5.2',
+					trackedState.compactionModel || 'gpt-4o-mini',
+				);
 
 				// No break here - let the stream finish naturally so we can capture all events
 				// and potential multiple interruptions in one turn.

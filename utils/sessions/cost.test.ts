@@ -191,5 +191,53 @@ describe('cost utilities', () => {
 			expect(logMessage).toContain('Total cost');
 			consoleSpy.mockRestore();
 		});
+
+		it('should respect serviceTier property on usage entries', () => {
+			costTracker.reset();
+			const usage = {
+				inputTokens: 1_000_000,
+				outputTokens: 1_000_000,
+				inputTokensDetails: [],
+				requestUsageEntries: [
+					{
+						endpoint: 'chat.completions',
+						inputTokens: 1_000_000,
+						outputTokens: 1_000_000,
+						totalTokens: 2_000_000,
+						inputTokensDetails: [] as any,
+						outputTokensDetails: [] as any,
+						serviceTier: 'standard',
+					} as any,
+				],
+			};
+
+			const cost = costTracker.recordTurn('gpt-5.2', usage);
+			// Standard prices: input: 1.75, output: 14.00 -> 15.75
+			// Flex prices (default): input: 0.875, output: 7.00 -> 7.875
+			expect(cost).toBeCloseTo(15.75);
+		});
+
+		it('should respect serviceTier=flex property on usage entries', () => {
+			costTracker.reset();
+			const usage = {
+				inputTokens: 1_000_000,
+				outputTokens: 1_000_000,
+				inputTokensDetails: [],
+				requestUsageEntries: [
+					{
+						endpoint: 'chat.completions',
+						inputTokens: 1_000_000,
+						outputTokens: 1_000_000,
+						totalTokens: 2_000_000,
+						inputTokensDetails: [] as any,
+						outputTokensDetails: [] as any,
+						serviceTier: 'flex',
+					} as any,
+				],
+			};
+
+			const cost = costTracker.recordTurn('gpt-5.2', usage);
+			expect(cost).toBeCloseTo(7.875);
+		});
 	});
 });

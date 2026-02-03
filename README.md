@@ -101,6 +101,19 @@ This will save all conversation history to the specified file. If the file alrea
 
 You can also set the default session path via the `HAIRPER_SESSION` environment variable.
 
+### Service Tier (OpenAI Only)
+
+By default, `hairper` uses the `auto` service tier. You can force the `flex` tier to be used with the `--flex-tier` flag:
+
+```bash
+# Use flex service tier
+hairper --flex-tier
+```
+
+Forcing the `flex` tier can help reduce costs, although it may result in more frequent errors during periods of high system load.
+
+You can also set this via the `HAIRPER_FLEX_TIER=true` environment variable.
+
 ### Ollama Support (Local Models)
 
 To use local models with [Ollama](https://ollama.com/), use the `ollama-` prefix:

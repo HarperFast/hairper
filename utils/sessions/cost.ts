@@ -130,7 +130,14 @@ class CostTracker {
 		if (usage?.requestUsageEntries && usage.requestUsageEntries.length > 0) {
 			for (const entry of usage.requestUsageEntries) {
 				const isCompaction = entry.endpoint === 'responses.compact';
-				const tier: ServiceTier = isCompaction ? 'standard' : 'flex';
+				let tier: ServiceTier = isCompaction ? 'standard' : 'flex';
+				const entryActualTier = (entry as any).serviceTier;
+				if (entryActualTier === 'flex') {
+					tier = 'flex';
+				} else if (entryActualTier === 'scale' || entryActualTier === 'standard') {
+					tier = 'standard';
+				}
+
 				const entryModel = isCompaction ? (compactionModel || 'gpt-4o-mini') : model;
 				if (!hasKnownPrices(entryModel, tier)) {
 					unknownPrices = true;
@@ -149,7 +156,9 @@ class CostTracker {
 				}
 			}
 		} else if (usage) {
-			turnCost = calculateCost(model, usage.inputTokens, usage.outputTokens, usage.inputTokensDetails, 'flex');
+			const usageActualTier = (usage as any).serviceTier;
+			const tier: ServiceTier = usageActualTier === 'scale' || usageActualTier === 'standard' ? 'standard' : 'flex';
+			turnCost = calculateCost(model, usage.inputTokens, usage.outputTokens, usage.inputTokensDetails, tier);
 		}
 
 		return { turnCost, compactionCost, unknownPrices };

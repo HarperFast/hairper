@@ -38,6 +38,9 @@ ${chalk.bold('OPTIONS')}
                           Can also be set via HAIRPER_COMPACTION_MODEL environment variable.
   -s, --session           Specify a path to a SQLite database file to persist the chat session.
                           Can also be set via HAIRPER_SESSION environment variable.
+  --flex-tier             Force the use of the flex service tier for lower costs but potentially 
+                          more errors under high system load.
+                          Can also be set via HAIRPER_FLEX_TIER=true environment variable.
 
 ${chalk.bold('COMMANDS')}
   help           Show help information

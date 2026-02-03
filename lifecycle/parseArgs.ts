@@ -45,6 +45,8 @@ export function parseArgs() {
 			trackedState.sessionPath = stripQuotes(arg.slice('--session='.length));
 		} else if (arg.startsWith('session=')) {
 			trackedState.sessionPath = stripQuotes(arg.slice('session='.length));
+		} else if (arg === '--flex-tier') {
+			trackedState.useFlexTier = true;
 		}
 	}
 
@@ -58,5 +60,11 @@ export function parseArgs() {
 
 	if (!trackedState.sessionPath && process.env.HAIRPER_SESSION) {
 		trackedState.sessionPath = process.env.HAIRPER_SESSION;
+	}
+
+	if (
+		!trackedState.useFlexTier && (process.env.HAIRPER_FLEX_TIER === 'true' || process.env.HAIRPER_FLEX_TIER === '1')
+	) {
+		trackedState.useFlexTier = true;
 	}
 }

@@ -6,6 +6,7 @@ export interface TrackedState {
 	model: string | null;
 	compactionModel: string | null;
 	sessionPath: string | null;
+	useFlexTier: boolean;
 }
 
 export const trackedState: TrackedState = {
@@ -16,4 +17,5 @@ export const trackedState: TrackedState = {
 	model: null,
 	compactionModel: null,
 	sessionPath: null,
+	useFlexTier: false,
 };
