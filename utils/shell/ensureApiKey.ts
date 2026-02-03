@@ -1,14 +1,15 @@
 import chalk from 'chalk';
 import { trackedState } from '../../lifecycle/trackedState';
+import { excludeFalsy } from '../arrays/excludeFalsy';
 import { updateEnv } from '../files/updateEnv';
 import { askSecureQuestion } from './askSecureQuestion';
 import { harperResponse } from './harperResponse';
 
 export async function ensureApiKey(): Promise<void> {
 	const models = [
-		trackedState.model || 'gpt-5.2',
-		trackedState.compactionModel || 'gpt-4o-mini',
-	];
+		trackedState.model,
+		trackedState.compactionModel,
+	].filter(excludeFalsy);
 
 	const requiredEnvVars = new Set<string>();
 	for (const model of models) {

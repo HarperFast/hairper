@@ -3,8 +3,8 @@ export interface TrackedState {
 	emptyLines: number;
 	approvalState: any | null;
 	controller: AbortController | null;
-	model: string | null;
-	compactionModel: string | null;
+	model: string;
+	compactionModel: string;
 	sessionPath: string | null;
 	useFlexTier: boolean;
 }
@@ -14,8 +14,8 @@ export const trackedState: TrackedState = {
 	emptyLines: 0,
 	approvalState: null,
 	controller: null,
-	model: null,
-	compactionModel: null,
+	model: '',
+	compactionModel: '',
 	sessionPath: null,
 	useFlexTier: false,
 };

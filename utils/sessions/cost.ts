@@ -46,9 +46,8 @@ const MODEL_PRICES: Record<ServiceTier, Record<string, { input: number; cachedIn
 	standard: STANDARD_PRICES,
 };
 
-export function hasKnownPrices(model: string | null | undefined, tier: ServiceTier = 'flex'): boolean {
-	const name = model || 'gpt-5.2';
-	return name in MODEL_PRICES[tier];
+export function hasKnownPrices(model: string | undefined, tier: ServiceTier = 'flex'): boolean {
+	return !!model && model in MODEL_PRICES[tier];
 }
 
 export function extractCachedTokens(
@@ -73,7 +72,10 @@ export function calculateCost(
 	inputTokenDetails: Array<Record<string, number>> | Record<string, number> | undefined,
 	tier: ServiceTier = 'flex',
 ): number {
-	const prices = MODEL_PRICES[tier][model || 'gpt-5.2'];
+	if (!model) {
+		return 0;
+	}
+	const prices = MODEL_PRICES[tier][model];
 	if (!prices) {
 		return 0;
 	}
@@ -138,7 +140,7 @@ class CostTracker {
 					tier = 'standard';
 				}
 
-				const entryModel = isCompaction ? (compactionModel || 'gpt-4o-mini') : model;
+				const entryModel = isCompaction ? compactionModel : model;
 				if (!hasKnownPrices(entryModel, tier)) {
 					unknownPrices = true;
 				}

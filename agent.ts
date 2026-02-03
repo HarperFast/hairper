@@ -40,7 +40,7 @@ async function main() {
 	const shouldNormalize = !isOpenAIModel(trackedState.model);
 	const agent = new Agent({
 		name,
-		model: getModel(trackedState.model),
+		model: isOpenAIModel(trackedState.model) ? trackedState.model : getModel(trackedState.model),
 		instructions,
 		tools: createTools(shouldNormalize),
 		modelSettings: {

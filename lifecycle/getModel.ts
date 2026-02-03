@@ -2,9 +2,10 @@ import { anthropic } from '@ai-sdk/anthropic';
 import { google } from '@ai-sdk/google';
 import { openai } from '@ai-sdk/openai';
 import { aisdk } from '@openai/agents-extensions';
+import { AiSdkModel } from '@openai/agents-extensions/ai-sdk';
 import { createOllama, ollama } from 'ollama-ai-provider-v2';
 
-export function isOpenAIModel(modelName: string | null): boolean {
+export function isOpenAIModel(modelName: string): boolean {
 	if (!modelName || modelName === 'gpt-5.2') {
 		return true;
 	}
@@ -16,11 +17,7 @@ export function isOpenAIModel(modelName: string | null): boolean {
 	);
 }
 
-export function getModel(modelName: string | null, defaultModel: string = 'gpt-5.2') {
-	if (!modelName || modelName === 'gpt-5.2') {
-		return defaultModel;
-	}
-
+export function getModel(modelName: string): AiSdkModel {
 	if (modelName.startsWith('claude-')) {
 		return aisdk(anthropic(modelName));
 	}
@@ -34,10 +31,26 @@ export function getModel(modelName: string | null, defaultModel: string = 'gpt-5
 		const ollamaProvider = ollamaBaseUrl
 			? createOllama({ baseURL: ollamaBaseUrl })
 			: ollama;
-		return aisdk(ollamaProvider(modelName.replace('ollama-', '')));
+		return aisdk(ollamaProvider(getModelName(modelName)));
 	}
 
 	return aisdk(openai(modelName));
+}
+
+export function getModelName(modelName: string): string {
+	if (modelName.startsWith('claude-')) {
+		return modelName;
+	}
+
+	if (modelName.startsWith('gemini-')) {
+		return modelName;
+	}
+
+	if (modelName.startsWith('ollama-')) {
+		return modelName.replace('ollama-', '');
+	}
+
+	return modelName;
 }
 
 function normalizeOllamaBaseUrl(baseUrl: string): string {

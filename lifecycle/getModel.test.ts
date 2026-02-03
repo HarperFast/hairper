@@ -15,12 +15,10 @@ vi.mock('ollama-ai-provider-v2', () => ({
 }));
 
 describe('getModel', () => {
-	it('should return default string for null modelName', () => {
-		expect(getModel(null)).toBe('gpt-5.2');
-	});
-
 	it('should return default string for gpt-5.2', () => {
-		expect(getModel('gpt-5.2')).toBe('gpt-5.2');
+		const result: any = getModel('gpt-5.2');
+		expect(result.wrapped.provider).toBe('openai');
+		expect(result.wrapped.name).toBe('gpt-5.2');
 	});
 
 	it('should return wrapped anthropic model for claude- models', () => {
@@ -98,10 +96,6 @@ describe('getModel', () => {
 	});
 
 	describe('isOpenAIModel', () => {
-		it('should return true for null', () => {
-			expect(isOpenAIModel(null)).toBe(true);
-		});
-
 		it('should return true for gpt-5.2', () => {
 			expect(isOpenAIModel('gpt-5.2')).toBe(true);
 		});

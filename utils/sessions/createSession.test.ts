@@ -16,6 +16,7 @@ vi.mock('./MemoryCompactionSession', () => ({
 
 vi.mock('../../lifecycle/getModel', () => ({
 	getModel: vi.fn(),
+	getModelName: vi.fn(),
 	isOpenAIModel: vi.fn(),
 }));
 
@@ -43,7 +44,7 @@ describe('createSession', () => {
 
 	it('should create an OpenAIResponsesCompactionSession if compaction model is an OpenAI model', () => {
 		vi.mocked(getModelModule.isOpenAIModel).mockReturnValue(true);
-		vi.mocked(getModelModule.getModel).mockReturnValue('gpt-4o-mini' as any);
+		vi.mocked(getModelModule.getModelName).mockReturnValue('gpt-4o-mini' as any);
 
 		createSession('gpt-4o-mini');
 

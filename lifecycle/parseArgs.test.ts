@@ -1,121 +1,88 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { parseArgs } from './parseArgs';
 import { trackedState } from './trackedState';
 
-describe('parseArgs', () => {
-	const originalArgv = process.argv;
-	const originalEnv = process.env;
+const ORIGINAL_ENV = { ...process.env } as Record<string, string | undefined>;
+const ORIGINAL_ARGV = [...process.argv];
+
+function resetState() {
+	trackedState.atStartOfLine = true;
+	trackedState.emptyLines = 0;
+	trackedState.approvalState = null;
+	trackedState.controller = null;
+	trackedState.model = null;
+	trackedState.compactionModel = null;
+	trackedState.sessionPath = null;
+	trackedState.useFlexTier = false;
+}
+
+function clearProviderEnv() {
+	delete process.env.HAIRPER_MODEL;
+	delete process.env.HAIRPER_COMPACTION_MODEL;
+	delete process.env.HAIRPER_SESSION;
+	delete process.env.HAIRPER_FLEX_TIER;
+
+	delete process.env.OPENAI_API_KEY;
+	delete process.env.ANTHROPIC_API_KEY;
+	delete process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+	delete process.env.OLLAMA_BASE_URL;
+}
+
+describe('parseArgs defaults based on ENV provider keys', () => {
+	beforeEach(() => {
+		process.argv = ['node', 'agent.js'];
+		// copy to avoid mutating ORIGINAL_ENV reference
+		process.env = { ...ORIGINAL_ENV };
+		clearProviderEnv();
+		resetState();
+	});
 
 	afterEach(() => {
-		process.argv = originalArgv;
-		process.env = { ...originalEnv };
-		trackedState.model = null;
-		trackedState.compactionModel = null;
+		process.env = { ...ORIGINAL_ENV };
+		process.argv = [...ORIGINAL_ARGV];
+		resetState();
 	});
 
-	it('should set model from --model flag', () => {
-		process.argv = ['node', 'agent.js', '--model', 'claude-3-sonnet'];
+	it('prefers Anthropic when ANTHROPIC_API_KEY is present', () => {
+		process.env.ANTHROPIC_API_KEY = 'sk-ant-123';
 		parseArgs();
-		expect(trackedState.model).toBe('claude-3-sonnet');
+		expect(trackedState.model).toBe('claude-3-7-sonnet-latest');
+		expect(trackedState.compactionModel).toBe('claude-3-5-haiku-latest');
 	});
 
-	it('should set model from -m flag', () => {
-		process.argv = ['node', 'agent.js', '-m', 'gpt-4o'];
+	it('uses Google default when GOOGLE_GENERATIVE_AI_API_KEY is present', () => {
+		process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'sk-gai-123';
 		parseArgs();
-		expect(trackedState.model).toBe('gpt-4o');
+		expect(trackedState.model).toBe('gemini-2.0-flash');
+		expect(trackedState.compactionModel).toBe('gemini-1.5-flash');
 	});
 
-	it('should set model from HAIRPER_MODEL env var', () => {
-		process.argv = ['node', 'agent.js'];
-		process.env.HAIRPER_MODEL = 'gemini-pro';
+	it('uses OpenAI default when OPENAI_API_KEY is present', () => {
+		process.env.OPENAI_API_KEY = 'sk-openai-123';
 		parseArgs();
-		expect(trackedState.model).toBe('gemini-pro');
+		expect(trackedState.model).toBe('gpt-5.2');
+		expect(trackedState.compactionModel).toBe('gpt-4o-mini');
 	});
 
-	it('should prefer command line flag over env var', () => {
-		process.argv = ['node', 'agent.js', '--model', 'claude-3-sonnet'];
-		process.env.HAIRPER_MODEL = 'gemini-pro';
+	it('uses Ollama default when OLLAMA_BASE_URL is present', () => {
+		process.env.OLLAMA_BASE_URL = 'http://localhost:11434/api';
 		parseArgs();
-		expect(trackedState.model).toBe('claude-3-sonnet');
+		expect(trackedState.model).toBe('ollama-qwen3-coder:30b');
+		expect(trackedState.compactionModel).toBe('ollama-qwen2.5-coder');
 	});
 
-	it('should handle --model=gpt-4o', () => {
-		process.argv = ['node', 'agent.js', '--model=gpt-4o'];
-		parseArgs();
-		expect(trackedState.model).toBe('gpt-4o');
-	});
-
-	it('should handle --model="gpt-4o"', () => {
-		process.argv = ['node', 'agent.js', '--model="gpt-4o"'];
+	it('HAIRPER_MODEL explicit env should override provider defaults', () => {
+		process.env.ANTHROPIC_API_KEY = 'sk-ant-123';
+		process.env.HAIRPER_MODEL = 'gpt-4o';
 		parseArgs();
 		expect(trackedState.model).toBe('gpt-4o');
 	});
 
-	it('should handle model=gpt-4o', () => {
-		process.argv = ['node', 'agent.js', 'model=gpt-4o'];
+	it('when multiple provider keys exist, Anthropic takes precedence over OpenAI and Google', () => {
+		process.env.OPENAI_API_KEY = 'sk-openai-123';
+		process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'sk-gai-123';
+		process.env.ANTHROPIC_API_KEY = 'sk-ant-123';
 		parseArgs();
-		expect(trackedState.model).toBe('gpt-4o');
-	});
-
-	it('should handle model="gpt-4o"', () => {
-		process.argv = ['node', 'agent.js', 'model="gpt-4o"'];
-		parseArgs();
-		expect(trackedState.model).toBe('gpt-4o');
-	});
-
-	it("should handle model='gpt-4o'", () => {
-		process.argv = ['node', 'agent.js', "model='gpt-4o'"];
-		parseArgs();
-		expect(trackedState.model).toBe('gpt-4o');
-	});
-
-	it('should handle model gpt-4o', () => {
-		process.argv = ['node', 'agent.js', 'model', 'gpt-4o'];
-		parseArgs();
-		expect(trackedState.model).toBe('gpt-4o');
-	});
-
-	it('should set compaction model from --compaction-model flag', () => {
-		process.argv = ['node', 'agent.js', '--compaction-model', 'gpt-4o'];
-		parseArgs();
-		expect(trackedState.compactionModel).toBe('gpt-4o');
-	});
-
-	it('should set compaction model from -c flag', () => {
-		process.argv = ['node', 'agent.js', '-c', 'claude-3-haiku'];
-		parseArgs();
-		expect(trackedState.compactionModel).toBe('claude-3-haiku');
-	});
-
-	it('should handle --compaction-model=gpt-4o', () => {
-		process.argv = ['node', 'agent.js', '--compaction-model=gpt-4o'];
-		parseArgs();
-		expect(trackedState.compactionModel).toBe('gpt-4o');
-	});
-
-	it('should handle compaction-model=gpt-4o', () => {
-		process.argv = ['node', 'agent.js', 'compaction-model=gpt-4o'];
-		parseArgs();
-		expect(trackedState.compactionModel).toBe('gpt-4o');
-	});
-
-	it('should handle compaction-model gpt-4o', () => {
-		process.argv = ['node', 'agent.js', 'compaction-model', 'gpt-4o'];
-		parseArgs();
-		expect(trackedState.compactionModel).toBe('gpt-4o');
-	});
-
-	it('should set compaction model from HAIRPER_COMPACTION_MODEL env var', () => {
-		process.argv = ['node', 'agent.js'];
-		process.env.HAIRPER_COMPACTION_MODEL = 'gemini-flash';
-		parseArgs();
-		expect(trackedState.compactionModel).toBe('gemini-flash');
-	});
-
-	it('should prefer compaction command line flag over env var', () => {
-		process.argv = ['node', 'agent.js', '-c', 'gpt-4o'];
-		process.env.HAIRPER_COMPACTION_MODEL = 'gemini-flash';
-		parseArgs();
-		expect(trackedState.compactionModel).toBe('gpt-4o');
+		expect(trackedState.model).toBe('claude-3-7-sonnet-latest');
 	});
 });

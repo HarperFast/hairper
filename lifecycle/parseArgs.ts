@@ -1,5 +1,6 @@
 import { isHelpRequest, isVersionRequest } from '../utils/shell/cli';
 import { handleHelp, handleVersion } from '../utils/shell/cli';
+import { isOpenAIModel } from './getModel';
 import { trackedState } from './trackedState';
 
 function stripQuotes(str: string): string {
@@ -50,6 +51,7 @@ export function parseArgs() {
 		}
 	}
 
+	// Explicit env overrides for direct model configuration
 	if (!trackedState.model && process.env.HAIRPER_MODEL) {
 		trackedState.model = process.env.HAIRPER_MODEL;
 	}
@@ -66,5 +68,38 @@ export function parseArgs() {
 		!trackedState.useFlexTier && (process.env.HAIRPER_FLEX_TIER === 'true' || process.env.HAIRPER_FLEX_TIER === '1')
 	) {
 		trackedState.useFlexTier = true;
+	}
+
+	// If no model was provided, select a sensible default based on available provider env keys
+	if (!trackedState.model) {
+		if (process.env.ANTHROPIC_API_KEY) {
+			trackedState.model = 'claude-3-7-sonnet-latest';
+		} else if (process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+			trackedState.model = 'gemini-2.0-flash';
+		} else if (process.env.OPENAI_API_KEY) {
+			trackedState.model = 'gpt-5.2';
+		} else if (process.env.OLLAMA_BASE_URL) {
+			trackedState.model = 'ollama-qwen3-coder:30b';
+		}
+		if (!trackedState.model) {
+			trackedState.model = 'gpt-5.2';
+		}
+	}
+
+	// If no compaction model was provided, align it with the chosen provider to avoid extra API key prompts
+	if (!trackedState.compactionModel) {
+		const m = trackedState.model || '';
+		if (m.startsWith('claude-')) {
+			trackedState.compactionModel = 'claude-3-5-haiku-latest';
+		} else if (m.startsWith('gemini-')) {
+			trackedState.compactionModel = 'gemini-1.5-flash';
+		} else if (m.startsWith('ollama-')) {
+			trackedState.compactionModel = 'ollama-qwen2.5-coder';
+		} else {
+			trackedState.compactionModel = 'gpt-4o-mini';
+		}
+	}
+	if (isOpenAIModel(trackedState.model) && !trackedState.compactionModel) {
+		trackedState.compactionModel = 'gpt-4o-mini';
 	}
 }

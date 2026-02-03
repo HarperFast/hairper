@@ -60,10 +60,6 @@ describe('cost utilities', () => {
 			expect(hasKnownPrices('gpt-5.2', 'standard')).toBe(true);
 		});
 
-		it('should return true for null (defaults to gpt-5.2 in flex)', () => {
-			expect(hasKnownPrices(null)).toBe(true);
-		});
-
 		it('should return true for gpt-4o-mini in standard tier', () => {
 			expect(hasKnownPrices('gpt-4o-mini', 'standard')).toBe(true);
 		});
