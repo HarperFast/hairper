@@ -1,5 +1,5 @@
 import { tool } from '@openai/agents';
-import { spawn } from 'node:child_process';
+import spawn from 'cross-spawn';
 import { platform } from 'node:os';
 import { z } from 'zod';
 import { harperProcess } from '../../utils/shell/harperProcess';

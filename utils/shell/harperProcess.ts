@@ -1,4 +1,5 @@
-import { ChildProcess, execSync, spawn } from 'node:child_process';
+import spawn from 'cross-spawn';
+import { type ChildProcess, execSync } from 'node:child_process';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 

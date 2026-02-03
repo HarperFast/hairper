@@ -1,4 +1,5 @@
-import { type ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
+import spawn from 'cross-spawn';
+import { type ChildProcessWithoutNullStreams } from 'node:child_process';
 import { mkdtempSync, readdirSync, rmSync } from 'node:fs';
 import os from 'node:os';
 import { join } from 'node:path';
