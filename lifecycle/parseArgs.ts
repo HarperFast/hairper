@@ -1,5 +1,4 @@
-import { isHelpRequest, isVersionRequest } from '../utils/shell/cli';
-import { handleHelp, handleVersion } from '../utils/shell/cli';
+import { handleHelp, handleVersion, isHelpRequest, isVersionRequest } from '../utils/shell/cli';
 import { isOpenAIModel } from './getModel';
 import { trackedState } from './trackedState';
 
@@ -110,7 +109,11 @@ export function parseArgs() {
 			trackedState.compactionModel = 'gpt-4o-mini';
 		}
 	}
-	if (isOpenAIModel(trackedState.model) && !trackedState.compactionModel) {
-		trackedState.compactionModel = 'gpt-4o-mini';
+	if (isOpenAIModel(trackedState.model)) {
+		if (!trackedState.compactionModel) {
+			trackedState.compactionModel = 'gpt-4o-mini';
+		}
+	} else {
+		process.env.OPENAI_AGENTS_DISABLE_TRACING = '1';
 	}
 }
