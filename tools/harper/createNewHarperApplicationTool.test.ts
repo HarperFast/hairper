@@ -33,10 +33,11 @@ describe('createNewHarperApplicationTool', () => {
 	it('automatically switches cwd to the created directory', async () => {
 		const appName = 'my-app';
 		const resolved = path.join(baseDir, appName);
-		await mkdir(resolved, { recursive: true }); // simulate directory created by npm
+		await mkdir(resolved, { recursive: true }); // simulate a directory created by npm
 
 		const result = await createHarper({ directoryName: appName, template: 'vanilla-ts' } as any);
-		expect(result).toContain('Successfully created new Harper application');
+		expect(result).toContain('Successfully created a new Harper application');
+		expect(result).toContain('AGENTS.md');
 		expect(process.cwd()).toBe(resolved);
 		expect(trackedState.cwd).toBe(resolved);
 	});

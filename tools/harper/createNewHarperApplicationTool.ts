@@ -82,7 +82,7 @@ export async function execute({ directoryName, template }: z.infer<typeof ToolPa
 		const pm = pickPackageManager();
 		const { cmd, label } = buildCreateCommand(pm, appName, template);
 		console.log(`Detected ${PM_DISPLAY[pm]}. Executing: ${label} in ${executionCwd} for ${appName}`);
-		const output = execSync(cmd, {
+		execSync(cmd, {
 			cwd: executionCwd,
 			encoding: 'utf-8',
 		});
@@ -93,7 +93,7 @@ export async function execute({ directoryName, template }: z.infer<typeof ToolPa
 		// Automatically switch into the newly created app directory
 		const switchedDir = await changeCwd({ path: resolvedPath } as any);
 
-		return `Successfully created new Harper application in '${resolvedPath}' using template '${template}'.\n\nCommand Output:\n${output}\n\nInitialized Git repository.\n\n${switchedDir}`;
+		return `Successfully created a new Harper application in '${resolvedPath}' using template '${template}' with a matching Git repository initialized. ${switchedDir}. Use the readDir and readFile tools to inspect the contents of the application, particularly the AGENTS.md.`;
 	} catch (error: any) {
 		let errorMsg = `Error creating new Harper application: ${error.message}`;
 		if (error.stdout) {
