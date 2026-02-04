@@ -29,30 +29,27 @@ describe('sayHi', () => {
 		writeFileSync(join(testDir, 'config.yaml'), 'foo: bar');
 		writeFileSync(join(testDir, 'AGENTS.md'), '# Agents');
 
-		sayHi();
+		const { instructions } = sayHi();
 
 		expect(harperResponse).toHaveBeenCalledWith(
-			expect.stringContaining('I see an AGENTS.md file here – you should probably read that next!'),
+			expect.stringContaining('What do you want to do together today?'),
 		);
+		expect(instructions).toContain('AGENTS.md');
 	});
 
 	it('does not suggest reading AGENTS.md if it does not exist', () => {
 		writeFileSync(join(testDir, 'config.yaml'), 'foo: bar');
 
-		sayHi();
+		const { instructions } = sayHi();
 
-		expect(harperResponse).toHaveBeenCalledWith(
-			expect.not.stringContaining('AGENTS.md'),
-		);
+		expect(instructions).not.toContain('AGENTS.md');
 	});
 
 	it('does not suggest reading AGENTS.md if it is not a harper app', () => {
 		writeFileSync(join(testDir, 'AGENTS.md'), '# Agents');
 
-		sayHi();
+		const { instructions } = sayHi();
 
-		expect(harperResponse).toHaveBeenCalledWith(
-			expect.not.stringContaining('AGENTS.md'),
-		);
+		expect(instructions).not.toContain('AGENTS.md');
 	});
 });
