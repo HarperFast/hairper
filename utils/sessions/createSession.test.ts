@@ -52,8 +52,6 @@ describe('createSession', () => {
 		expect(MemorySession).toHaveBeenCalled();
 		expect(MemoryCompactionSession).toHaveBeenCalledWith(expect.objectContaining({
 			underlyingSession: expect.any(MemorySession),
-			model: 'mock-model',
-			modelName: 'gpt-4o-mini',
 		}));
 		expect(OpenAIResponsesCompactionSession).not.toHaveBeenCalled();
 		expect(trackCompactionModule.trackCompaction).toHaveBeenCalled();

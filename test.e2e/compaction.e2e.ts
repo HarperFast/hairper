@@ -1,0 +1,121 @@
+import 'dotenv/config';
+import { SystemMessageItem, UserMessageItem } from '@openai/agents';
+import { beforeAll, describe, expect, test } from 'vitest';
+import { parseArgs } from '../lifecycle/parseArgs';
+import { trackedState } from '../lifecycle/trackedState';
+import { createSession } from '../utils/sessions/createSession';
+
+/**
+ * Integration test: exercises the real compaction flow against a live model.
+ * - Builds a larger conversation (>= 21 items: 1 system + 20 user messages with heavy content)
+ * - Forces compaction via session.runCompaction({ force: true })
+ * - Verifies the resulting items follow the expected pattern:
+ *   [firstItem, system(compaction notice), ...last3]
+ */
+describe('Memory compaction integration (real LLM)', () => {
+	beforeAll(() => parseArgs());
+
+	test(
+		'forces compaction and injects a notice using the real compaction model',
+		async () => {
+			const session = createSession(trackedState.sessionPath);
+
+			const exampleItems: Array<UserMessageItem | SystemMessageItem> = [
+				{
+					id: 'msg_0642545a9ff896b60069814c6aed888193a54e532b28e3fc0a',
+					type: 'message',
+					content: [{
+						type: 'input_text',
+						text:
+							'can you create a favicon for me, and reference it in the html? based on public/images/softwork-beats.png...',
+					}],
+					role: 'user',
+				},
+				{
+					id: 'msg_0642545a9ff896b60069814c6aef1c819381cd3a027f4cbc07',
+					type: 'message',
+					content: [{ type: 'input_text', text: 'yup, generate those please' }],
+					role: 'user',
+				},
+				{
+					id: 'msg_0642545a9ff896b60069820b38c4248193ae8f52477fecdfe9',
+					type: 'message',
+					content: [{
+						type: 'input_text',
+						text:
+							'in the seed folder, write two new scripts: import.mjs and export.mjs. Export should fetch /Albums/ and /Tracks/ with application/json, but then use that to fetch /Albums/{id} and /Tracks/{id} one-by-one with application/cbor. Write the resulting files to seed/albums/{id}.cbor and seed/tracks/{id}.cbor. Oh, when starting an export, clear out these albums/tracks folders first please. When importing, POST each of the backed up albums and tracks. The URL to the server should be configurable when starting the import or export',
+					}],
+					role: 'user',
+				},
+				{
+					id: 'msg_0642545a9ff896b60069821ffe4ecc8193b7edaafc8cff1e8a',
+					type: 'message',
+					content: [{
+						type: 'input_text',
+						text: 'can you add bundling to split my react app into multiple chunks?',
+					}],
+					role: 'user',
+				},
+				{
+					id: 'msg_0642545a9ff896b60069821ffe4edc81939a5933e6d7525678',
+					type: 'message',
+					content: [{
+						type: 'input_text',
+						text: 'can you split my app into bundles, please? to reduce payload sizes on clients',
+					}],
+					role: 'user',
+				},
+				{
+					id: 'msg_0642545a9ff896b6006982207b0af4819381b85dedf9cad936',
+					type: 'message',
+					content: [{ type: 'input_text', text: 'can you combine the components into a single bundle, though?' }],
+					role: 'user',
+				},
+				{
+					id: 'msg_0642545a9ff896b600698220df462c8193a33960c07388fe03',
+					type: 'message',
+					content: [{
+						type: 'input_text',
+						text:
+							'sorry, thats not quite what i meant to accomplish -- i want the pages to be split into bundles, but the shared components in src/components can all be a single bundle, instead of a bunch of tiny ones',
+					}],
+					role: 'user',
+				},
+				{
+					id: 'msg_0642545a9ff896b6006982213ab6508193932d1c5be259dcd8',
+					type: 'message',
+					content: [{
+						type: 'input_text',
+						text:
+							'yeah, exactly! and lets make another bundle, like the one for components, for everything under utils -- i just moved a few things into that directory',
+					}],
+					role: 'user',
+				},
+				{
+					type: 'message',
+					role: 'user',
+					content: 'can you split vendor (node_modules) stuff into a stable bundle or two, as well?',
+				},
+			];
+			await session.addItems(exampleItems);
+			// Force compaction regardless of token threshold to exercise the model call
+			await session.runCompaction({ force: true });
+
+			const items = (await session.getItems()) as Array<UserMessageItem | SystemMessageItem>;
+
+			// After compaction: first item + compaction notice + last 3 items => 5 total
+			expect(items.length).toBe(5);
+			expect(items[0]!.role).toBe(exampleItems.at(0)!.role);
+			expect(items[0]!.id).toBe(exampleItems.at(0)!.id);
+			expect(items[1]!.role).toBe('system');
+			expect(items[2]).toEqual(exampleItems.at(-3));
+			expect(items[3]).toEqual(exampleItems.at(-2));
+			expect(items[4]).toEqual(exampleItems.at(-1));
+
+			const noticeText = items![1]!.content;
+			expect(String(noticeText)).toMatch(/compacted/i);
+			expect(String(noticeText)).not.toEqual('... conversation history compacted ...');
+		},
+		90_000,
+	);
+});

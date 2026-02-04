@@ -1,23 +1,18 @@
 import {
 	type AgentInputItem,
-	type AssistantMessageItem,
 	MemorySession,
-	type Model,
 	type OpenAIResponsesCompactionArgs,
 	type OpenAIResponsesCompactionAwareSession,
 	type OpenAIResponsesCompactionResult,
 	type Session,
-	system,
 } from '@openai/agents';
+import { trackedState } from '../../lifecycle/trackedState';
 import { excludeFalsy } from '../arrays/excludeFalsy';
+import { compactConversation } from './compactConversation';
 import { getCompactionTriggerTokens } from './modelContextLimits';
 
 export interface MemoryCompactionSessionOptions {
 	underlyingSession?: Session;
-	model: Model;
-	// Optional: model name to determine context window for token-aware compaction
-	modelName?: string;
-	// Optional: fraction of context window at which to trigger compaction (0.5..0.95)
 	triggerFraction?: number;
 }
 
@@ -28,17 +23,14 @@ export interface MemoryCompactionSessionOptions {
  */
 export class MemoryCompactionSession implements OpenAIResponsesCompactionAwareSession {
 	private readonly underlyingSession: Session;
-	private readonly model: Model;
 	private readonly triggerTokens?: number;
 	private itemsAddedSinceLastCompaction: number = 0;
 
 	constructor(options: MemoryCompactionSessionOptions) {
 		this.underlyingSession = options.underlyingSession ?? new MemorySession();
-		this.model = options.model;
-		// Compute token-based trigger if modelName provided
-		if (options.modelName) {
+		if (trackedState.compactionModel) {
 			const fraction = options.triggerFraction ?? 0.8;
-			this.triggerTokens = getCompactionTriggerTokens(options.modelName, fraction);
+			this.triggerTokens = getCompactionTriggerTokens(trackedState.compactionModel, fraction);
 		}
 	}
 
@@ -77,9 +69,9 @@ export class MemoryCompactionSession implements OpenAIResponsesCompactionAwareSe
 	 * - If a token trigger threshold is configured (via modelName), compaction is
 	 *   skipped unless the estimated token count exceeds the threshold, unless a
 	 *   forcing flag is provided in args.
-	 * - If history is trivially small (<= 6 items), it skips compaction.
+	 * - If history is trivially small (<= 4 items), it skips compaction.
 	 * - Otherwise, it keeps the first item, adds a compaction notice (optionally
-	 *   summarized by the model), and retains the last 5 recent items.
+	 *   summarized by the model), and retains the last 3 recent items.
 	 */
 	async runCompaction(args?: OpenAIResponsesCompactionArgs): Promise<OpenAIResponsesCompactionResult | null> {
 		const items = await this.underlyingSession.getItems();
@@ -97,61 +89,19 @@ export class MemoryCompactionSession implements OpenAIResponsesCompactionAwareSe
 			}
 		}
 
-		// Keep the first item to maintain core instructions
-		const firstItem = items[0];
-		// Keep the last 5 items to maintain some recent context
-		const recentItems = items.slice(-5);
-
 		// If we are already below or at a small number of items, no need to clear/add
-		if (items.length <= 6) {
+		if (items.length <= 4) {
 			return null;
 		}
 
-		let compactionNoticeContent = '... conversation history compacted ...';
-
-		if (this.model) {
-			try {
-				const response = await this.model.getResponse({
-					input: items,
-					systemInstructions:
-						'Summarize the conversation history so far into a single concise paragraph. Focus on the key facts and decisions made.',
-					modelSettings: {},
-					tools: [],
-					outputType: 'text',
-					handoffs: [],
-					tracing: false,
-				});
-
-				const summary = response.output
-					.flatMap((o) => {
-						if ('role' in o && o.role === 'assistant') {
-							const assistantMsg = o as AssistantMessageItem;
-							return assistantMsg.content
-								.filter((c) => c.type === 'output_text')
-								.map((c) => c.text);
-						}
-						return [];
-					})
-					.join('\n');
-
-				if (summary) {
-					compactionNoticeContent = `... conversation history compacted: ${summary} ...`;
-				}
-			} catch (error) {
-				// Fallback to simple notice if model fails
-				console.error('Failed to run model-based compaction:', error);
-			}
-		}
+		const { itemsToAdd } = await compactConversation(items);
 
 		// Reset the counter only when we actually compact
 		this.itemsAddedSinceLastCompaction = 0;
 
 		await this.underlyingSession.clearSession();
 
-		// We add a system message indicating that history was compacted
-		const compactionNotice = system(compactionNoticeContent);
-
-		await this.underlyingSession.addItems([firstItem, compactionNotice, ...recentItems].filter(excludeFalsy));
+		await this.underlyingSession.addItems(itemsToAdd.filter(excludeFalsy));
 
 		return null;
 	}

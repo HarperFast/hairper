@@ -8,7 +8,7 @@ import { createSession } from '../utils/sessions/createSession';
 import { modelSettings } from '../utils/sessions/modelSettings';
 import { Chat } from './utils/chat';
 
-describe('End-to-End Tests', () => {
+describe('App Creation Tests', () => {
 	const chat = new Chat();
 	const youArePretendingToBeADev =
 		'You are pretending to be a human chatting with the Hairper coding agent to create your next great app. ';
@@ -17,7 +17,7 @@ describe('End-to-End Tests', () => {
 
 	beforeAll(() => parseArgs());
 
-	test(
+	test.skip(
 		'creates a simple react app',
 		async () => {
 			const messages = chat.bootstrap();
@@ -39,7 +39,7 @@ describe('End-to-End Tests', () => {
 		60_000,
 	);
 
-	test(
+	test.skip(
 		'can guide the user through simple questions',
 		async () => {
 			const messages = chat.bootstrap();

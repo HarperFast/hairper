@@ -10,3 +10,10 @@ export const modelSettings: ModelSettings = {
 		service_tier: trackedState.useFlexTier ? 'flex' : 'auto',
 	},
 };
+
+export const compactionModelSettings: ModelSettings = {
+	...modelSettings,
+	text: {
+		verbosity: 'medium',
+	},
+};

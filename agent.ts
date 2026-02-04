@@ -43,7 +43,7 @@ async function main() {
 		instructions,
 		tools: createTools(),
 	});
-	const session = createSession(trackedState.compactionModel, trackedState.sessionPath);
+	const session = createSession(trackedState.sessionPath);
 
 	while (true) {
 		let task: string = '';
@@ -208,7 +208,7 @@ async function main() {
 			const code = err.code ? ` code=${err.code}` : '';
 			const status = err.status || err.statusCode || err.response?.status;
 			const statusStr = status ? ` status=${status}` : '';
-			const callIdMatch = typeof message === 'string' ? message.match(/function call\s+(call_[A-Za-z0-9_-]+)/i) : null;
+			const callIdMatch = message.match(/function call\s+(call_[A-Za-z0-9_-]+)/i);
 			const callId = callIdMatch?.[1];
 			const isNoToolOutput = /No tool output found for function call/i.test(message || '');
 			const hint = isNoToolOutput

@@ -2,8 +2,7 @@ import chalk from 'chalk';
 import { harperResponse } from '../utils/shell/harperResponse';
 import { spinner } from '../utils/shell/spinner';
 import { trackedState } from './trackedState';
-
-type WithRunCompaction = { runCompaction: (args?: any) => Promise<any> };
+import type { WithRunCompaction } from './withRunCompaction';
 
 export function trackCompaction(session: WithRunCompaction) {
 	const originalRunCompaction = session.runCompaction.bind(session);
