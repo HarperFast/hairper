@@ -3,8 +3,8 @@ import { execute, skillLinkRegex } from './getHarperSkillTool';
 
 describe('getHarperSkillTool', () => {
 	it('should return the content of a skill', async () => {
-		// We know 'adding-tables' should exist if node_modules is present
-		const result = await execute({ skill: 'adding-tables' });
+		// We know 'adding-tables-with-schemas' should exist if node_modules is present
+		const result = await execute({ skill: 'adding-tables-with-schemas' });
 		expect(result).toContain('# Adding Tables');
 	});
 
@@ -14,17 +14,17 @@ describe('getHarperSkillTool', () => {
 	});
 
 	describe('skillLinkRegex', () => {
-		it('should find [Adding Tables](skills/adding-tables.md) and turn it into adding-tables', () => {
-			const input = '[Adding Tables](skills/adding-tables.md)';
+		it('should find [Adding Tables](skills/adding-tables-with-schemas.md) and turn it into adding-tables-with-schemas', () => {
+			const input = '[Adding Tables](skills/adding-tables-with-schemas.md)';
 			const result = input.replace(skillLinkRegex, '$1');
-			expect(result).toBe('adding-tables');
+			expect(result).toBe('adding-tables-with-schemas');
 		});
 
 		it('should work with multiple links in a string', () => {
 			const input =
-				'- [Adding Tables](skills/adding-tables.md): Learn how...\n- [Automatic REST APIs](skills/automatic-rest-apis.md): Details...';
+				'- [Adding Tables](skills/adding-tables-with-schemas.md): Learn how...\n- [Automatic REST APIs](skills/automatic-rest-apis.md): Details...';
 			const result = input.replace(skillLinkRegex, '$1');
-			expect(result).toContain('- adding-tables: Learn how...');
+			expect(result).toContain('- adding-tables-with-schemas: Learn how...');
 			expect(result).toContain('- automatic-rest-apis: Details...');
 		});
 

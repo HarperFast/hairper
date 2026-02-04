@@ -48,7 +48,7 @@
 		"@openai/agents-extensions": "^0.4.5",
 		"ai": "^6.0.69",
 		"chalk": "^5.6.2",
-		"create-harper": "^0.11.0",
+		"create-harper": "^0.12.0",
 		"cross-spawn": "^7.0.6",
 		"dotenv": "^17.2.3",
 		"ollama-ai-provider-v2": "^3.0.3",
