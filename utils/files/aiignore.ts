@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
+import { trackedState } from '../../lifecycle/trackedState';
 
 let ignorePatterns: string[] = [];
 
@@ -7,7 +8,7 @@ let ignorePatterns: string[] = [];
  * Loads patterns from the .aiignore file in the current working directory.
  */
 export function loadAiIgnore() {
-	const ignorePath = path.join(process.cwd(), '.aiignore');
+	const ignorePath = path.join(trackedState.cwd, '.aiignore');
 	if (existsSync(ignorePath)) {
 		try {
 			const content = readFileSync(ignorePath, 'utf-8');
@@ -37,8 +38,8 @@ export function isIgnored(filePath: string): boolean {
 		return true;
 	}
 
-	const absolutePath = path.resolve(process.cwd(), filePath);
-	const relativePath = path.relative(process.cwd(), absolutePath);
+	const absolutePath = path.resolve(trackedState.cwd, filePath);
+	const relativePath = path.relative(trackedState.cwd, absolutePath);
 
 	// If the path is outside the project root, it's not handled by .aiignore patterns
 	if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {

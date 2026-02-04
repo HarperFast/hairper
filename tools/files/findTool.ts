@@ -2,6 +2,7 @@ import { tool } from '@openai/agents';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { z } from 'zod';
+import { trackedState } from '../../lifecycle/trackedState';
 import { isIgnored } from '../../utils/files/aiignore';
 import { resolvePath } from '../../utils/files/paths';
 
@@ -23,7 +24,7 @@ export const findTool = tool({
 	parameters: ToolParameters,
 	async execute({ path: searchPath, iname }: z.infer<typeof ToolParameters>) {
 		try {
-			const resolvedPath = resolvePath(process.cwd(), searchPath);
+			const resolvedPath = resolvePath(trackedState.cwd, searchPath);
 			const { stdout } = await execFileAsync('find', [resolvedPath, '-iname', iname]);
 			return stdout
 				.split('\n')

@@ -1,6 +1,7 @@
 import { tool } from '@openai/agents';
 import { readFile } from 'node:fs/promises';
-import path from 'node:path';
+import { createRequire } from 'node:module';
+import { dirname, join } from 'node:path';
 import { z } from 'zod';
 
 const ToolParameters = z.object({});
@@ -12,8 +13,13 @@ export const getHarperSchemaGraphQLTool = tool({
 	parameters: ToolParameters,
 	async execute() {
 		try {
-			const filePath = path.join(process.cwd(), 'node_modules', 'harperdb', 'schema.graphql');
-			return await readFile(filePath, 'utf-8');
+			return await readFile(
+				join(
+					dirname(createRequire(import.meta.url).resolve('harperdb')),
+					`schema.graphql`,
+				),
+				'utf-8',
+			);
 		} catch (error) {
 			return `Error reading HarperDB GraphQL schema: ${error}`;
 		}

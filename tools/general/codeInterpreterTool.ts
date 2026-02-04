@@ -5,6 +5,7 @@ import { unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import { z } from 'zod';
+import { trackedState } from '../../lifecycle/trackedState';
 import { spinner } from '../../utils/shell/spinner';
 
 const execAsync = promisify(exec);
@@ -54,7 +55,7 @@ export async function needsApproval(
 export async function execute({ code, language }: z.infer<typeof CodeInterpreterParameters>) {
 	const extension = language === 'javascript' ? 'js' : 'py';
 	const interpreter = language === 'javascript' ? 'node' : 'python3';
-	const tempFile = path.join(process.cwd(), `.temp_code_${Date.now()}.${extension}`);
+	const tempFile = path.join(trackedState.cwd, `.temp_code_${Date.now()}.${extension}`);
 	try {
 		await writeFile(tempFile, code, 'utf-8');
 		const { stdout, stderr } = await execAsync(`${interpreter} ${tempFile}`);

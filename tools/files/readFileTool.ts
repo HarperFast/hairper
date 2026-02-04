@@ -1,6 +1,7 @@
 import { tool } from '@openai/agents';
 import { readFile } from 'node:fs/promises';
 import { z } from 'zod';
+import { trackedState } from '../../lifecycle/trackedState';
 import { resolvePath } from '../../utils/files/paths';
 
 const ToolParameters = z.object({
@@ -15,7 +16,7 @@ export const readFileTool = tool({
 	parameters: ToolParameters,
 	async execute({ fileName }: z.infer<typeof ToolParameters>) {
 		try {
-			const resolvedPath = resolvePath(process.cwd(), fileName);
+			const resolvedPath = resolvePath(trackedState.cwd, fileName);
 			return readFile(resolvedPath, 'utf-8');
 		} catch (error) {
 			return `Error reading file: ${error}`;

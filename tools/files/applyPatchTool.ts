@@ -1,6 +1,8 @@
 import { tool } from '@openai/agents';
 import chalk from 'chalk';
 import { z } from 'zod';
+import { isOpenAIModel } from '../../lifecycle/getModel';
+import { trackedState } from '../../lifecycle/trackedState';
 import { printDiff } from '../../utils/files/printDiff';
 import { spinner } from '../../utils/shell/spinner';
 import { WorkspaceEditor } from './workspaceEditor';
@@ -13,8 +15,9 @@ const ApplyPatchParameters = z.object({
 	),
 });
 
-export function createApplyPatchTool(shouldNormalize: boolean = true) {
-	const editor = new WorkspaceEditor(process.cwd(), shouldNormalize);
+export function createApplyPatchTool() {
+	const isOpenAI = isOpenAIModel(trackedState.model);
+	const editor = new WorkspaceEditor(trackedState.cwd, !isOpenAI);
 	return tool({
 		name: 'apply_patch',
 		description: 'Applies a patch (create, update, or delete a file) to the workspace.',

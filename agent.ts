@@ -36,13 +36,12 @@ async function main() {
 
 	const { name, instructions } = sayHi();
 
-	const shouldNormalize = !isOpenAIModel(trackedState.model);
 	const agent = new Agent({
 		name,
 		model: isOpenAIModel(trackedState.model) ? trackedState.model : getModel(trackedState.model),
 		modelSettings,
 		instructions,
-		tools: createTools(shouldNormalize),
+		tools: createTools(),
 	});
 	const session = createSession(trackedState.compactionModel, trackedState.sessionPath);
 

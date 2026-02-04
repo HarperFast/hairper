@@ -1,4 +1,5 @@
 export interface TrackedState {
+	cwd: string;
 	atStartOfLine: boolean;
 	emptyLines: number;
 	approvalState: any | null;
@@ -12,6 +13,7 @@ export interface TrackedState {
 }
 
 export const trackedState: TrackedState = {
+	cwd: process.cwd(),
 	atStartOfLine: true,
 	emptyLines: 0,
 	approvalState: null,

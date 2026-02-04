@@ -2,6 +2,7 @@ import { tool } from '@openai/agents';
 import { readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
+import { trackedState } from '../../lifecycle/trackedState';
 import { isIgnored } from '../../utils/files/aiignore';
 import { resolvePath } from '../../utils/files/paths';
 
@@ -17,7 +18,7 @@ export const readDirTool = tool({
 	parameters: ToolParameters,
 	async execute({ directoryName }: z.infer<typeof ToolParameters>) {
 		try {
-			const resolvedPath = resolvePath(process.cwd(), directoryName);
+			const resolvedPath = resolvePath(trackedState.cwd, directoryName);
 			const files = await readdir(resolvedPath, 'utf-8');
 			return files.filter(file => !isIgnored(path.join(resolvedPath, file)));
 		} catch (error) {

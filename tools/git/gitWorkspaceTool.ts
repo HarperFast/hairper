@@ -2,6 +2,7 @@ import { tool } from '@openai/agents';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { z } from 'zod';
+import { trackedState } from '../../lifecycle/trackedState';
 import { resolvePath } from '../../utils/files/paths';
 
 const execFileAsync = promisify(execFile);
@@ -18,7 +19,7 @@ export const gitWorkspaceTool = tool({
 	parameters: GitWorkspaceParameters,
 	async execute({ path: workspacePath, branchName, createBranch }: z.infer<typeof GitWorkspaceParameters>) {
 		try {
-			const resolvedPath = resolvePath(process.cwd(), workspacePath);
+			const resolvedPath = resolvePath(trackedState.cwd, workspacePath);
 			const args = createBranch
 				? ['worktree', 'add', '-b', branchName, resolvedPath]
 				: ['worktree', 'add', resolvedPath, branchName];

@@ -27,11 +27,11 @@ import { readHarperLogsTool } from './harper/readHarperLogsTool';
 import { startHarperTool } from './harper/startHarperTool';
 import { stopHarperTool } from './harper/stopHarperTool';
 
-export function createTools(shouldNormalize: boolean = true) {
+export function createTools() {
 	return [
 		checkHarperStatusTool,
 		codeInterpreterTool,
-		createApplyPatchTool(shouldNormalize),
+		createApplyPatchTool(),
 		createNewHarperApplicationTool,
 		egrepTool,
 		findTool,

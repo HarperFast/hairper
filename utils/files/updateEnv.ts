@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { trackedState } from '../../lifecycle/trackedState';
 
 /**
  * Updates an environment variable in both the current process and the .env file.
@@ -10,7 +11,7 @@ import { join } from 'node:path';
  */
 export async function updateEnv(key: string, value: string): Promise<void> {
 	process.env[key] = value;
-	const envPath = join(process.cwd(), '.env');
+	const envPath = join(trackedState.cwd, '.env');
 
 	let envContent = '';
 	if (existsSync(envPath)) {

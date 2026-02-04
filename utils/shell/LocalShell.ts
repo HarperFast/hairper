@@ -2,11 +2,11 @@ import type { Shell, ShellAction, ShellOutputResult, ShellResult } from '@openai
 import { exec } from 'node:child_process';
 import process from 'node:process';
 import { promisify } from 'node:util';
+import { trackedState } from '../../lifecycle/trackedState';
 
 const execAsync = promisify(exec);
 
 export class LocalShell implements Shell {
-	private readonly cwd: string = process.cwd();
 	private readonly defaultTimeoutMs: number;
 
 	constructor(options?: { defaultTimeoutMs?: number }) {
@@ -32,7 +32,7 @@ export class LocalShell implements Shell {
 				const { stdout: localStdout, stderr: localStderr } = await execAsync(
 					command,
 					{
-						cwd: this.cwd,
+						cwd: trackedState.cwd,
 						// Prefer per-call timeout, else default
 						timeout: action.timeoutMs ?? this.defaultTimeoutMs,
 						maxBuffer: action.maxOutputLength,
@@ -62,7 +62,7 @@ export class LocalShell implements Shell {
 		return {
 			output,
 			providerData: {
-				working_directory: this.cwd,
+				working_directory: trackedState.cwd,
 			},
 		};
 	}

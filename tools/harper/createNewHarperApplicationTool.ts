@@ -2,6 +2,7 @@ import { tool } from '@openai/agents';
 import { execSync } from 'node:child_process';
 import path from 'node:path';
 import { z } from 'zod';
+import { trackedState } from '../../lifecycle/trackedState';
 import { resolvePath } from '../../utils/files/paths';
 
 const ToolParameters = z.object({
@@ -16,9 +17,8 @@ const ToolParameters = z.object({
 });
 
 export async function execute({ directoryName, template }: z.infer<typeof ToolParameters>) {
-	const resolvedPath = resolvePath(process.cwd(), directoryName);
-
-	const currentCwd = process.cwd();
+	const currentCwd = trackedState.cwd;
+	const resolvedPath = resolvePath(currentCwd, directoryName);
 	const isCurrentDir = resolvedPath === currentCwd;
 	const executionCwd = isCurrentDir ? resolvedPath : path.dirname(resolvedPath);
 	const appName = isCurrentDir ? '.' : path.basename(resolvedPath);

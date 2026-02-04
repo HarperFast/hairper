@@ -4,9 +4,10 @@ import { mkdtempSync, readdirSync, rmSync } from 'node:fs';
 import os from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach } from 'vitest';
+import { trackedState } from '../../lifecycle/trackedState';
 
 export class Chat {
-	private originalCwd = process.cwd();
+	private originalCwd = trackedState.cwd;
 	private tempDir: string | undefined;
 	private child: ChildProcessWithoutNullStreams | null = null;
 	public stdoutBuf: string = '';
