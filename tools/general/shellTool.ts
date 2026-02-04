@@ -4,7 +4,6 @@ import { z } from 'zod';
 import { mentionsIgnoredPath } from '../../utils/files/mentionsIgnoredPath';
 import { isRiskyCommand } from '../../utils/shell/isRiskyCommand';
 import { LocalShell } from '../../utils/shell/LocalShell';
-import { spinner } from '../../utils/shell/spinner';
 
 const ShellParameters = z.object({
 	commands: z.array(z.string()).describe('The commands to execute.'),
@@ -38,7 +37,6 @@ export const shellTool = tool({
 
 		const autoApproved = process.env.SHELL_AUTO_APPROVE === '1' && !foundRiskyCommand && !foundIgnoredInteraction;
 
-		spinner.stop();
 		if (autoApproved) {
 			console.log(
 				chalk.bold.bgGreen.black('\n Shell command (auto-approved): \n'),
@@ -62,7 +60,7 @@ export const shellTool = tool({
 		}
 
 		if (autoApproved) {
-			spinner.start();
+			// No-op, just to keep the logic consistent
 		}
 
 		return !autoApproved;

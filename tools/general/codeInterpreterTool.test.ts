@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { spinner } from '../../utils/shell/spinner';
 import { execute, needsApproval } from './codeInterpreterTool';
 
 vi.mock('node:child_process', () => {
@@ -16,12 +15,7 @@ vi.mock('node:fs/promises', () => ({
 	unlink: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock('../../utils/shell/spinner', () => ({
-	spinner: {
-		start: vi.fn(),
-		stop: vi.fn(),
-	},
-}));
+// ... no more spinner mock
 
 describe('codeInterpreterTool', () => {
 	beforeEach(() => {
@@ -49,8 +43,6 @@ describe('codeInterpreterTool', () => {
 				language: 'python',
 			});
 			expect(result).toBe(true);
-			expect(spinner.stop).toHaveBeenCalled();
-			expect(spinner.start).not.toHaveBeenCalled();
 		});
 
 		it('should return false if CODE_INTERPRETER_AUTO_APPROVE is set to 1', async () => {
@@ -60,8 +52,6 @@ describe('codeInterpreterTool', () => {
 				language: 'python',
 			});
 			expect(result).toBe(false);
-			expect(spinner.stop).toHaveBeenCalled();
-			expect(spinner.start).toHaveBeenCalled();
 		});
 
 		it('should return false if already approved', async () => {
@@ -71,7 +61,6 @@ describe('codeInterpreterTool', () => {
 				'call-123',
 			);
 			expect(result).toBe(false);
-			expect(spinner.stop).not.toHaveBeenCalled();
 		});
 	});
 });

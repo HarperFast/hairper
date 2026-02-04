@@ -6,7 +6,6 @@ import path from 'node:path';
 import { promisify } from 'node:util';
 import { z } from 'zod';
 import { trackedState } from '../../lifecycle/trackedState';
-import { spinner } from '../../utils/shell/spinner';
 
 const execAsync = promisify(exec);
 
@@ -37,17 +36,12 @@ export async function needsApproval(
 
 	const autoApproved = process.env.CODE_INTERPRETER_AUTO_APPROVE === '1';
 
-	spinner.stop();
 	if (autoApproved) {
 		console.log(`\n${chalk.bold.bgGreen.black(` Code interpreter (${language}, auto-approved): `)}`);
 	} else {
 		console.log(`\n${chalk.bold.bgYellow.black(` Code interpreter (${language}) approval required: `)}`);
 	}
 	console.log(chalk.dim(code));
-
-	if (autoApproved) {
-		spinner.start();
-	}
 
 	return !autoApproved;
 }

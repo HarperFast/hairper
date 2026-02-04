@@ -3,7 +3,6 @@ import { trackedState } from '../../lifecycle/trackedState';
 import { excludeFalsy } from '../arrays/excludeFalsy';
 import { updateEnv } from '../files/updateEnv';
 import { askSecureQuestion } from './askSecureQuestion';
-import { harperResponse } from './harperResponse';
 
 export async function ensureApiKey(): Promise<void> {
 	const models = [
@@ -40,7 +39,7 @@ export async function ensureApiKey(): Promise<void> {
 			keyUrl = 'https://aistudio.google.com/app/apikey';
 		}
 
-		harperResponse(chalk.red(`${envVar} is not set.`));
+		console.log(chalk.red(`\n${chalk.bold('Harper:')} ${envVar} is not set.`));
 		console.log(`To get started with ${providerName}, you'll need an API key.`);
 		console.log(`1. Grab a key from ${chalk.cyan(keyUrl)}`);
 		console.log(`2. Enter it below and I'll save it to your ${chalk.cyan('.env')} file.\n`);

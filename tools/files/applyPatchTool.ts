@@ -3,7 +3,6 @@ import chalk from 'chalk';
 import { z } from 'zod';
 import { trackedState } from '../../lifecycle/trackedState';
 import { printDiff } from '../../utils/files/printDiff';
-import { spinner } from '../../utils/shell/spinner';
 import { WorkspaceEditor } from './workspaceEditor';
 
 const ApplyPatchParameters = z.object({
@@ -29,7 +28,6 @@ export function createApplyPatchTool() {
 
 				const autoApproved = process.env.APPLY_PATCH_AUTO_APPROVE === '1';
 
-				spinner.stop();
 				if (autoApproved) {
 					console.log(`\n${chalk.bold.bgGreen.black(' Apply patch (auto-approved): ')}`);
 				} else {
@@ -38,9 +36,6 @@ export function createApplyPatchTool() {
 				console.log(`${chalk.bold(operation.type)}: ${operation.path}`);
 				if (operation.diff) {
 					printDiff(operation.diff);
-				}
-				if (autoApproved) {
-					spinner.start();
 				}
 
 				return !autoApproved;
