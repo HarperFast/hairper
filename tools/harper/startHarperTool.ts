@@ -1,4 +1,6 @@
 import { tool } from '@openai/agents';
+import { existsSync } from 'node:fs';
+import { basename, resolve } from 'node:path';
 import { z } from 'zod';
 import { isIgnored } from '../../utils/files/aiignore';
 import { sleep } from '../../utils/promises/sleep';
@@ -21,16 +23,27 @@ export const startHarperTool = tool({
 		}
 
 		if (harperProcess.running) {
-			return `Error: A Harper application is already running, and will auto-reload as changes are made.`;
+			return `Success! A Harper application is already running, and will auto-reload as changes are made.`;
 		}
 
 		try {
-			harperProcess.start(directoryName);
+			// If the provided directory doesn't exist relative to CWD, but matches the
+			// current directory's folder name, use the current working directory.
+			let effectiveDirectory = directoryName;
+			const candidatePath = resolve(process.cwd(), directoryName);
+			if (!existsSync(candidatePath)) {
+				const cwd = process.cwd();
+				if (basename(cwd) === directoryName) {
+					effectiveDirectory = cwd;
+				}
+			}
+
+			harperProcess.start(effectiveDirectory);
 			await sleep(5000);
 			const logs = harperProcess.getAndClearLogs();
-			return `Successfully started Harper application with auto-reload in '${directoryName}' with initial logs:\n${logs}`;
+			return `Successfully started Harper application with auto-reload in '${effectiveDirectory}' with initial logs:\n${logs}`;
 		} catch (error) {
-			return `Error starting Harper application: ${error}`;
+			return `Error: failed to start Harper application: ${error}`;
 		}
 	},
 });
