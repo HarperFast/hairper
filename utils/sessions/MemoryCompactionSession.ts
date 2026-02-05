@@ -29,7 +29,7 @@ export class MemoryCompactionSession implements OpenAIResponsesCompactionAwareSe
 	constructor(options: MemoryCompactionSessionOptions) {
 		this.underlyingSession = options.underlyingSession ?? new MemorySession();
 		if (trackedState.compactionModel) {
-			const fraction = options.triggerFraction ?? 0.8;
+			const fraction = options.triggerFraction ?? 0.5;
 			this.triggerTokens = getCompactionTriggerTokens(trackedState.compactionModel, fraction);
 		}
 	}

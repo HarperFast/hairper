@@ -36,6 +36,12 @@ describe('MemoryCompactionSession', () => {
 		expect(items[0]).toEqual(user('hello'));
 	});
 
+	it('should use default fraction of 0.5 when not specified', async () => {
+		const defaultSession = new MemoryCompactionSession({ underlyingSession: new MemorySession() });
+		// gpt-4o limit is 200,000. 200,000 * 0.5 = 100,000
+		expect((defaultSession as any).triggerTokens).toBe(100_000);
+	});
+
 	it('does not auto-compact when history is small (<= 4 items)', async () => {
 		await session.addItems([
 			system('instructions'),

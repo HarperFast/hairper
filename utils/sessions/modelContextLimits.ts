@@ -24,7 +24,7 @@ export function getModelContextLimit(modelName: string | undefined | null): numb
 	return DEFAULT_LIMIT;
 }
 
-export function getCompactionTriggerTokens(modelName: string | undefined | null, fraction = 0.8): number {
+export function getCompactionTriggerTokens(modelName: string | undefined | null, fraction = 0.5): number {
 	const limit = getModelContextLimit(modelName);
 	// Keep a healthy buffer to avoid provider-side rejections
 	const f = Math.min(Math.max(fraction, 0.5), 0.95);
