@@ -5,7 +5,7 @@
   width="640"
   height="200"
   role="img"
-  aria-label="npx -y harper-agent"
+  aria-label="npm install -g @harperfast/agent, harper-agent"
 >
   <defs>
     <!-- Brand-ish gradient for the wordmark -->
@@ -47,7 +47,7 @@
         rx="14"
         ry="14"
         width="800"
-        height="56"
+        height="100"
         fill="#0b1020"
         opacity="0.92"
       />
@@ -62,10 +62,19 @@
         font-size="22"
         fill="#e6f7ff"
         opacity="0.96"
-      >$ npx -y harper-agent</text>
+      >$ npm install -g @harperfast/agent</text>
+
+      <text
+        class="mono"
+        x="90"
+        y="75"
+        font-size="22"
+        fill="#e6f7ff"
+        opacity="0.96"
+      >$ harper agent</text>
 
       <!-- blinking cursor -->
-      <rect x="380" y="17" width="12" height="24" fill="#e6f7ff" opacity="0.55">
+      <rect x="284" y="55" width="12" height="24" fill="#e6f7ff" opacity="0.55">
         <animate
           attributeName="opacity"
           values="0.1;0.8;0.1"

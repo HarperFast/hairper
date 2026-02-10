@@ -1,4 +1,4 @@
-![](assets/logo.png) ![npx -y harper-agent](./README.svg)
+![](assets/logo.png) ![npm install -g @harperfast/agent](./README.svg)
 
 AI to help you with Harper app creation and management.
 
