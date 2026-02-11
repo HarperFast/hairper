@@ -1,3 +1,12 @@
+import { browserClickTool } from './browser/browserClickTool';
+import { browserCloseTool } from './browser/browserCloseTool';
+import { browserEvaluateTool } from './browser/browserEvaluateTool';
+import { browserGetContentTool } from './browser/browserGetContentTool';
+import { browserGetLogsTool } from './browser/browserGetLogsTool';
+import { browserIsElementPresentTool } from './browser/browserIsElementPresentTool';
+import { browserNavigateTool } from './browser/browserNavigateTool';
+import { browserScreenshotTool } from './browser/browserScreenshotTool';
+import { browserTypeTool } from './browser/browserTypeTool';
 import { createApplyPatchTool } from './files/applyPatchTool';
 import { changeCwdTool } from './files/changeCwdTool';
 import { egrepTool } from './files/egrepTool';
@@ -23,13 +32,21 @@ import { getHarperResourceInterfaceTool } from './harper/getHarperResourceInterf
 import { getHarperSchemaGraphQLTool } from './harper/getHarperSchemaGraphQLTool';
 import { getHarperSkillTool } from './harper/getHarperSkillTool';
 import { hitHarperAPITool } from './harper/hitHarperAPITool';
-import { openHarperInBrowserTool } from './harper/openHarperInBrowserTool';
 import { readHarperLogsTool } from './harper/readHarperLogsTool';
 import { startHarperTool } from './harper/startHarperTool';
 import { stopHarperTool } from './harper/stopHarperTool';
 
 export function createTools() {
 	return [
+		browserClickTool,
+		browserCloseTool,
+		browserEvaluateTool,
+		browserGetContentTool,
+		browserGetLogsTool,
+		browserIsElementPresentTool,
+		browserNavigateTool,
+		browserScreenshotTool,
+		browserTypeTool,
 		changeCwdTool,
 		checkHarperStatusTool,
 		codeInterpreterTool,
@@ -49,7 +66,6 @@ export function createTools() {
 		gitStatusTool,
 		gitWorkspaceTool,
 		hitHarperAPITool,
-		openHarperInBrowserTool,
 		readDirTool,
 		readFileTool,
 		readHarperLogsTool,

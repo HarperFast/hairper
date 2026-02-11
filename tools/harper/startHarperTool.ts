@@ -15,7 +15,7 @@ const ToolParameters = z.object({
 export const startHarperTool = tool({
 	name: 'startHarperTool',
 	description:
-		'Starts a Harper app background process, allowing you to observe the app in action (by readHarperLogsTool, hitHarperAPITool, openHarperInBrowserTool, etc).',
+		'Starts a Harper app background process, allowing you to observe the app in action (by readHarperLogsTool, hitHarperAPITool, etc).',
 	parameters: ToolParameters,
 	async execute({ directoryName }: z.infer<typeof ToolParameters>) {
 		if (isIgnored(directoryName)) {
