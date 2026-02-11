@@ -1,9 +1,9 @@
 import { createRequire } from 'node:module';
 import { afterAll, describe, expect, it } from 'vitest';
-import { execute as closeBrowser } from './browserCloseTool';
-import { execute as getContent } from './browserGetContentTool';
-import { execute as navigate } from './browserNavigateTool';
-import { execute as takeScreenshot } from './browserScreenshotTool';
+import { execute as closeBrowser } from '../tools/browser/browserCloseTool';
+import { execute as getContent } from '../tools/browser/browserGetContentTool';
+import { execute as navigate } from '../tools/browser/browserNavigateTool';
+import { execute as takeScreenshot } from '../tools/browser/browserScreenshotTool';
 
 const require = createRequire(import.meta.url);
 let hasPuppeteer = true;
