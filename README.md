@@ -56,6 +56,18 @@ Harper: What do you want to do together today?
 >
 ```
 
+### Non-interactive: pipe an initial prompt
+
+You can pass an initial chat dump via stdin. This runs a one-shot interaction and exits after responding:
+
+```bash
+cat somePrompt.md | harper-agent
+# or
+harper-agent < somePrompt.md
+```
+
+In this mode, the initial greeting question is suppressed, and the agent processes the provided prompt immediately.
+
 ## Model Selection
 
 By default, `harper-agent` uses OpenAI. You can switch to other models using the `--model` (or `-m`) flag:

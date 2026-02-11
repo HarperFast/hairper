@@ -15,6 +15,7 @@ import { costTracker } from './utils/sessions/cost';
 import { modelSettings } from './utils/sessions/modelSettings';
 import { askQuestion } from './utils/shell/askQuestion';
 import { ensureApiKey } from './utils/shell/ensureApiKey';
+import { getStdin } from './utils/shell/getStdin';
 import { harperResponse } from './utils/shell/harperResponse';
 import { spinner } from './utils/shell/spinner';
 
@@ -37,6 +38,7 @@ async function main() {
 	await ensureApiKey();
 
 	sayHi();
+	const stdinPrompt = await getStdin();
 
 	const agent = trackedState.agent = new Agent({
 		name: 'Harper App Development Assistant',
@@ -48,6 +50,7 @@ async function main() {
 
 	const session = trackedState.session = createSession(trackedState.sessionPath);
 
+	let firstIteration = true;
 	while (true) {
 		let task: string = '';
 		// Track the last tool call so we can include context if an error happens
@@ -56,7 +59,14 @@ async function main() {
 		trackedState.controller = new AbortController();
 
 		if (!trackedState.approvalState) {
-			task = await askQuestion('> ');
+			if (firstIteration && stdinPrompt) {
+				task = stdinPrompt;
+				console.log(`${chalk.bold('>')} ${task}\n`);
+			} else {
+				task = await askQuestion('> ');
+			}
+			firstIteration = false;
+
 			if (!task) {
 				trackedState.emptyLines += 1;
 				if (trackedState.emptyLines >= 2) {
@@ -200,6 +210,11 @@ async function main() {
 					stream.state.usage,
 					trackedState.compactionModel || 'gpt-4o-mini',
 				);
+			}
+
+			// If we received an initial prompt via stdin, treat this as a one-shot run
+			if (stdinPrompt) {
+				return handleExit();
 			}
 		} catch (error: any) {
 			spinner.stop();
