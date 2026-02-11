@@ -17,7 +17,7 @@ const ToolParameters = z.object({
 });
 
 export const getHarperResourceInterfaceTool = tool({
-	name: 'getHarperResourceInterfaceTool',
+	name: 'get_harper_resource_interface',
 	description:
 		'Reads HarperDB resource interface and class definitions (like ResourceInterfaceV2.d.ts) to understand how resources and tables are structured.',
 	parameters: ToolParameters,

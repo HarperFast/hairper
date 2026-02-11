@@ -13,7 +13,7 @@ const GitCommitParameters = z.object({
 });
 
 export const gitCommitTool = tool({
-	name: 'gitCommitTool',
+	name: 'git_commit',
 	description: 'Commit changes to the repository.',
 	parameters: GitCommitParameters,
 	async execute({ message, addAll }: z.infer<typeof GitCommitParameters>) {

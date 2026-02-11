@@ -14,11 +14,11 @@ const ToolParameters = z.object({
 });
 
 export const hitHarperAPITool = tool({
-	name: 'hitHarperAPITool',
+	name: 'hit_harper_api',
 	description: 'Performs a request against the running Harper API. Use /openapi to look up Harper APIs.',
 	parameters: ToolParameters,
 	needsApproval: async (runContext, input, callId) => {
-		if (callId && runContext.isToolApproved({ toolName: 'hitHarperAPITool', callId })) {
+		if (callId && runContext.isToolApproved({ toolName: 'hit_harper_api', callId })) {
 			return false;
 		}
 

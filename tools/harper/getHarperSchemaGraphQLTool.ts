@@ -7,7 +7,7 @@ import { z } from 'zod';
 const ToolParameters = z.object({});
 
 export const getHarperSchemaGraphQLTool = tool({
-	name: 'getHarperSchemaGraphQLTool',
+	name: 'get_harper_schema_graphql',
 	description:
 		'Returns the GraphQL schema for HarperDB schema files, which define the structure of HarperDB database tables.',
 	parameters: ToolParameters,

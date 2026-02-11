@@ -11,7 +11,7 @@ const ToolParameters = z.object({
 });
 
 export const getHarperConfigSchemaTool = tool({
-	name: 'getHarperConfigSchemaTool',
+	name: 'get_harper_config_schema',
 	description:
 		'Returns the JSON schema for HarperDB configuration files (either app or root), which describes the config.yaml or harperdb-config.yaml files.',
 	parameters: ToolParameters,

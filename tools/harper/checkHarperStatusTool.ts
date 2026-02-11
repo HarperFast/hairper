@@ -5,7 +5,7 @@ import { harperProcess } from '../../utils/shell/harperProcess';
 const ToolParameters = z.object({});
 
 export const checkHarperStatusTool = tool({
-	name: 'checkHarperStatusTool',
+	name: 'check_harper_status',
 	description: 'Checks if a Harper application is currently running.',
 	parameters: ToolParameters,
 	async execute() {

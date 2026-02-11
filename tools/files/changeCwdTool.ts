@@ -41,7 +41,7 @@ export async function execute({ path }: z.infer<typeof ToolParameters>) {
 }
 
 export const changeCwdTool = tool({
-	name: 'changeCwd',
+	name: 'change_cwd',
 	description: 'Changes the current working directory for subsequent tools. Accepts absolute or relative paths.',
 	parameters: ToolParameters,
 	execute,

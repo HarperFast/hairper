@@ -5,7 +5,7 @@ import { harperProcess } from '../../utils/shell/harperProcess';
 const ToolParameters = z.object({});
 
 export const readHarperLogsTool = tool({
-	name: 'readHarperLogsTool',
+	name: 'read_harper_logs',
 	description:
 		'Reads the most recent console logs of a started Harper app and clears them so that subsequent reads will only show new logs.',
 	parameters: ToolParameters,

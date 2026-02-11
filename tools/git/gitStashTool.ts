@@ -13,7 +13,7 @@ const GitStashParameters = z.object({
 });
 
 export const gitStashTool = tool({
-	name: 'gitStashTool',
+	name: 'git_stash',
 	description: 'Stash changes or apply a stash.',
 	parameters: GitStashParameters,
 	async execute({ action, message }: z.infer<typeof GitStashParameters>) {

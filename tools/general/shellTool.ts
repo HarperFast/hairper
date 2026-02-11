@@ -14,8 +14,8 @@ const ShellParameters = z.object({
 const shell = new LocalShell();
 
 export const shellTool = tool({
-	name: 'shellToolForCommandsWithoutABetterTool',
-	description: 'Executes shell commands.',
+	name: 'shell',
+	description: 'Executes shell commands. Only use when we do not have a better tool.',
 	parameters: ShellParameters,
 	execute: async ({ commands }) => {
 		const result = await shell.run({ commands });

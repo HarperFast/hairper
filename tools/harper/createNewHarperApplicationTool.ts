@@ -54,7 +54,7 @@ export async function execute({ directoryName, template }: z.infer<typeof ToolPa
 }
 
 export const createNewHarperApplicationTool = tool({
-	name: 'createNewHarperApplicationTool',
+	name: 'create_new_harper_application',
 	description:
 		'Creates a new Harper application using the best available package manager (yarn/pnpm/bun/deno, falling back to npm).',
 	parameters: ToolParameters,

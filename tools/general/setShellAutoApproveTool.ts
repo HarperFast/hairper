@@ -8,7 +8,7 @@ const SetShellAutoApproveParameters = z.object({
 });
 
 export const setShellAutoApproveTool = tool({
-	name: 'setShellAutoApproveTool',
+	name: 'set_shell_auto_approve',
 	description:
 		'Enable or disable automatic approval for shell commands by setting HARPER_AGENT_AUTO_APPROVE_SHELL=1 or 0 in .env and current process.',
 	parameters: SetShellAutoApproveParameters,

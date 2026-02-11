@@ -5,7 +5,7 @@ import { harperProcess } from '../../utils/shell/harperProcess';
 const ToolParameters = z.object({});
 
 export const stopHarperTool = tool({
-	name: 'stopHarperTool',
+	name: 'stop_harper',
 	description: 'Stops all previously started Harper app background process.',
 	parameters: ToolParameters,
 	async execute() {

@@ -13,7 +13,7 @@ const ToolParameters = z.object({
 });
 
 export const startHarperTool = tool({
-	name: 'startHarperTool',
+	name: 'start_harper',
 	description:
 		'Starts a Harper app background process, allowing you to observe the app in action (by readHarperLogsTool, hitHarperAPITool, etc).',
 	parameters: ToolParameters,

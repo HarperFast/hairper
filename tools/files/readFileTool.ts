@@ -47,7 +47,7 @@ export async function execute({ fileName }: z.infer<typeof ToolParameters>) {
 }
 
 export const readFileTool = tool({
-	name: 'readFile',
+	name: 'read_file',
 	description: 'Reads the contents of a specified file. If the file is an image, it returns a structured image object.',
 	parameters: ToolParameters,
 	execute,

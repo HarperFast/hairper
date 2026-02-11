@@ -10,7 +10,7 @@ const GitAddParameters = z.object({
 });
 
 export const gitAddTool = tool({
-	name: 'gitAddTool',
+	name: 'git_add',
 	description: 'Add file contents to the index.',
 	parameters: GitAddParameters,
 	async execute({ files }: z.infer<typeof GitAddParameters>) {

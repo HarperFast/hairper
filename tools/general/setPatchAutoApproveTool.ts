@@ -8,7 +8,7 @@ const SetPatchAutoApproveParameters = z.object({
 });
 
 export const setPatchAutoApproveTool = tool({
-	name: 'setPatchAutoApproveTool',
+	name: 'set_patch_auto_approve',
 	description:
 		'Enable or disable automatic approval for patch commands by setting HARPER_AGENT_AUTO_APPROVE_PATCHES=1 or 0 in .env and current process.',
 	parameters: SetPatchAutoApproveParameters,

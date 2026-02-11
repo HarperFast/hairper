@@ -11,7 +11,7 @@ const GitLogParameters = z.object({
 });
 
 export const gitLogTool = tool({
-	name: 'gitLogTool',
+	name: 'git_log',
 	description: 'Show commit logs.',
 	parameters: GitLogParameters,
 	async execute({ count, oneline }: z.infer<typeof GitLogParameters>) {

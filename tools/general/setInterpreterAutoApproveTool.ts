@@ -8,7 +8,7 @@ const SetInterpreterAutoApproveParameters = z.object({
 });
 
 export const setInterpreterAutoApproveTool = tool({
-	name: 'setInterpreterAutoApproveTool',
+	name: 'set_interpreter_auto_approve',
 	description:
 		'Enable or disable automatic approval for code interpreter by setting HARPER_AGENT_AUTO_APPROVE_CODE_INTERPRETER=1 or 0 in .env and current process.',
 	parameters: SetInterpreterAutoApproveParameters,

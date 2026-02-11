@@ -13,7 +13,7 @@ const ToolParameters = z.object({
 });
 
 export const readDirTool = tool({
-	name: 'readDir',
+	name: 'read_dir',
 	description: 'Lists the files in a directory.',
 	parameters: ToolParameters,
 	async execute({ directoryName }: z.infer<typeof ToolParameters>) {

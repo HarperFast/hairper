@@ -10,7 +10,7 @@ const GitStatusParameters = z.object({
 });
 
 export const gitStatusTool = tool({
-	name: 'gitStatusTool',
+	name: 'git_status',
 	description: 'Show the working tree status.',
 	parameters: GitStatusParameters,
 	async execute({ short }: z.infer<typeof GitStatusParameters>) {

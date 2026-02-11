@@ -27,7 +27,7 @@ const ToolParameters = z.object({
 });
 
 export const getHarperSkillTool = tool({
-	name: 'getHarperSkill',
+	name: 'get_harper_skill',
 	description: getSkillsDescription(),
 	parameters: ToolParameters,
 	execute,
