@@ -10,7 +10,7 @@ import { createSession } from '../utils/sessions/createSession';
  * - Builds a larger conversation (>= 21 items: 1 system + 20 user messages with heavy content)
  * - Forces compaction via session.runCompaction({ force: true })
  * - Verifies the resulting items follow the expected pattern:
- *   [firstItem, system(compaction notice), ...last3]
+ *   [system(compaction notice), ...last3]
  */
 describe('Memory compaction integration (real LLM)', () => {
 	beforeAll(() => parseArgs());
@@ -104,16 +104,14 @@ describe('Memory compaction integration (real LLM)', () => {
 			const items = (await session.getItems()) as Array<UserMessageItem | SystemMessageItem>;
 
 			// After compaction: first item + compaction notice + last 3 items => 5 total
-			expect(items.length).toBe(5);
-			expect(items[0]!.role).toBe(exampleItems.at(0)!.role);
-			expect(items[0]!.id).toBe(exampleItems.at(0)!.id);
-			expect(items[1]!.role).toBe('system');
-			expect(items[2]).toEqual(exampleItems.at(-3));
-			expect(items[3]).toEqual(exampleItems.at(-2));
-			expect(items[4]).toEqual(exampleItems.at(-1));
+			expect(items.length).toBe(4);
+			expect(items[0]!.role).toBe('system');
+			expect(items[1]).toEqual(exampleItems.at(-3));
+			expect(items[2]).toEqual(exampleItems.at(-2));
+			expect(items[3]).toEqual(exampleItems.at(-1));
 
-			const noticeText = items![1]!.content;
-			expect(String(noticeText)).toMatch(/compacted/i);
+			const noticeText = items![0]!.content;
+			expect(String(noticeText)).toMatch(/Key observations from earlier:/i);
 			expect(String(noticeText)).not.toEqual('... conversation history compacted ...');
 		},
 		90_000,

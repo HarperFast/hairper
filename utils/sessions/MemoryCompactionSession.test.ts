@@ -68,15 +68,12 @@ describe('MemoryCompactionSession', () => {
 		await session.runCompaction({ force: true } as any);
 
 		const items = await session.getItems();
-		// After compaction: first item + compaction notice + last 3 items => 5 total
-		expect(items.length).toBe(5);
-		// First item should remain the original system message
+		// After compaction: compaction notice + last 3 items => 4 total
+		expect(items.length).toBe(4);
 		expect((items[0] as any).role).toBe('system');
-		expect((items[0] as any).content?.[0]?.text ?? (items[0] as any).content).toContain('instructions');
-		// Second item should be the compaction notice (a system message containing 'compacted')
-		expect((items[1] as any).role).toBe('system');
-		const noticeText = (items[1] as any).content?.[0]?.text ?? (items[1] as any).content;
-		expect(String(noticeText)).toMatch(/compacted/i);
+		expect((items[0] as any).content?.[0]?.text ?? (items[0] as any).content).toContain(
+			'Key observations from earlier:',
+		);
 		// Last 3 items should be the last three user messages (u2..u4)
 		const lastThree = items.slice(-3).map((it: any) => it.content?.[0]?.text ?? it.content);
 		expect(lastThree).toEqual(['u2', 'u3', 'u4']);

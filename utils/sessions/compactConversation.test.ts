@@ -37,18 +37,18 @@ describe('compactConversation utility', () => {
 
 		const { noticeContent, itemsToAdd } = await compactConversation(items as any);
 
-		expect(noticeContent).toMatch(/compacted/i);
+		expect(noticeContent).toMatch(/Key observations from earlier:/i);
 		expect(noticeContent).toMatch(/Key facts decided\./);
 
-		// first + notice + last 3
-		expect(itemsToAdd.length).toBe(5);
+		// key observations + last 3
+		expect(itemsToAdd.length).toBe(4);
 		expect((itemsToAdd[0] as any).role).toBe('system');
-		expect((itemsToAdd[1] as any).role).toBe('system');
+		expect((itemsToAdd[1] as any).role).toBe('user');
 
 		const lastThree = itemsToAdd.slice(-3).map((it: any) => it.content?.[0]?.text ?? it.content);
 		expect(lastThree).toEqual(['u4', 'u5', 'u6']);
 
-		expect(run as any).toHaveBeenCalledWith(expect.anything(), items.slice(1, -3));
+		expect(run as any).toHaveBeenCalledWith(expect.anything(), items.slice(0, -3));
 	});
 
 	it('falls back to default notice if model throws', async () => {

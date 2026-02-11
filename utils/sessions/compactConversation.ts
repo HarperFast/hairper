@@ -17,9 +17,8 @@ export interface CompactionArtifacts {
 export async function compactConversation(
 	items: AgentInputItem[],
 ): Promise<CompactionArtifacts> {
-	const firstItem = items[0];
 	const recentItems = items.slice(-3);
-	const itemsToCompact = items.slice(1, -3);
+	const itemsToCompact = items.slice(0, -3);
 
 	let noticeContent = '... conversation history compacted ...';
 
@@ -31,8 +30,9 @@ export async function compactConversation(
 					? trackedState.compactionModel
 					: getModel(trackedState.compactionModel),
 				modelSettings: compactionModelSettings,
-				instructions:
-					'Summarize the conversation history so far into a single concise paragraph. Focus on the key facts and decisions made.',
+				instructions: 'Compact the provided conversation history into key observations. '
+					+ 'Focus on what seems likely to be needed later. '
+					+ 'Be concise and avoid repeating information.',
 			});
 			const result = await run(
 				agent,
@@ -43,7 +43,7 @@ export async function compactConversation(
 			if (summary && summary.trim().length > 0) {
 				// Collapse excessive whitespace and make the notice compact
 				const s = summary.replace(/\s+/g, ' ').trim();
-				noticeContent = `... conversation history compacted: ${s} ...`;
+				noticeContent = `Key observations from earlier:\n${s}`;
 			}
 		} catch (err: any) {
 			// Keep default notice if summarization fails. Suppress noisy tracing errors
@@ -58,6 +58,6 @@ export async function compactConversation(
 		}
 	}
 
-	const itemsToAdd: AgentInputItem[] = [firstItem, system(noticeContent), ...recentItems].filter(excludeFalsy);
+	const itemsToAdd: AgentInputItem[] = [system(noticeContent), ...recentItems].filter(excludeFalsy);
 	return { noticeContent, itemsToAdd };
 }
