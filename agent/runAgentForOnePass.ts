@@ -1,5 +1,6 @@
-import { Agent, type AgentInputItem, run, type RunState } from '@openai/agents';
+import { Agent, type AgentInputItem, run, type RunState, system } from '@openai/agents';
 import { actionId } from '../ink/contexts/ActionsContext';
+import { globalPlanContext } from '../ink/contexts/globalPlanContext';
 import { addListener, curryEmitToListeners, emitToListeners, onceListener } from '../ink/emitters/listener';
 import { handleExit } from '../lifecycle/handleExit';
 import type { CombinedSession } from '../lifecycle/session';
@@ -25,7 +26,32 @@ export async function runAgentForOnePass(
 	try {
 		let hasStartedResponse = false;
 
-		const stream = await run(agent, input, {
+		// If there is no plan yet, prepend a system instruction guiding the model to establish one first
+		let adjustedInput = input;
+		const noPlanYet = globalPlanContext.planItems.length === 0
+			&& (!globalPlanContext.planDescription || globalPlanContext.planDescription.trim().length === 0);
+		if (noPlanYet && (typeof input === 'string' || Array.isArray(input))) {
+			const planningInstruction = [
+				'If there is no current plan, first establish one and keep it updated:',
+				'- Use the tools to manage the plan:',
+				'  • set_plan_description(description)',
+				'  • set_plan_items(items: string[])',
+				'  • add_plan_item(text)',
+				"  • update_plan_item(id, text, status: 'todo' | 'in-progress' | 'done' | 'not-needed' | 'unchanged')",
+				'- After setting the plan, as you progress, mark items as in-progress, done, or not-needed.',
+				'- Keep the plan concise and actionable. Update statuses as you move forward.',
+			].join('\n');
+			if (typeof input === 'string') {
+				adjustedInput = [
+					system(planningInstruction),
+					{ type: 'message', role: 'user', content: input } as AgentInputItem,
+				];
+			} else {
+				adjustedInput = [system(planningInstruction), ...input as AgentInputItem[]];
+			}
+		}
+
+		const stream = await run(agent, adjustedInput as any, {
 			session,
 			stream: true,
 			signal: controller.signal,

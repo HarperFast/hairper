@@ -30,7 +30,7 @@ export const PlanProvider = ({
 
 	useListener('SetPlanItems', (planItems) => {
 		globalPlanContext.planItems = planItems;
-		const completedCount = planItems.filter(item => item.completed).length;
+		const completedCount = planItems.filter(item => item.status === 'done' || item.status === 'not-needed').length;
 		const progress = planItems.length === 0 ? 0 : Math.round((completedCount / planItems.length) * 100);
 		globalPlanContext.progress = progress;
 		setPlanItems(planItems);

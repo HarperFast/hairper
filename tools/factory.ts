@@ -35,6 +35,10 @@ import { hitHarperAPITool } from './harper/hitHarperAPITool';
 import { readHarperLogsTool } from './harper/readHarperLogsTool';
 import { startHarperTool } from './harper/startHarperTool';
 import { stopHarperTool } from './harper/stopHarperTool';
+import { addPlanItemTool } from './plan/addPlanItemTool';
+import { setPlanDescriptionTool } from './plan/setPlanDescriptionTool';
+import { setPlanItemsTool } from './plan/setPlanItemsTool';
+import { updatePlanItemTool } from './plan/updatePlanItemTool';
 
 export function createTools() {
 	return [
@@ -47,6 +51,7 @@ export function createTools() {
 		browserNavigateTool,
 		browserScreenshotTool,
 		browserTypeTool,
+		addPlanItemTool,
 		changeCwdTool,
 		checkHarperStatusTool,
 		codeInterpreterTool,
@@ -71,9 +76,12 @@ export function createTools() {
 		readHarperLogsTool,
 		setInterpreterAutoApproveTool,
 		setPatchAutoApproveTool,
+		setPlanDescriptionTool,
+		setPlanItemsTool,
 		setShellAutoApproveTool,
 		shellTool,
 		startHarperTool,
 		stopHarperTool,
+		updatePlanItemTool,
 	];
 }

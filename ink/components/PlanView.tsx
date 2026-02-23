@@ -15,8 +15,23 @@ export function PlanView() {
 			<Box flexDirection="column" flexGrow={1}>
 				{planItems.map(planItem => (
 					<Box key={planItem.id}>
-						<Text color={planItem.completed ? 'green' : 'white'}>
-							{planItem.completed ? ' ● ' : ' ○ '}
+						<Text
+							color={planItem.status === 'done'
+								? 'green'
+								: planItem.status === 'in-progress'
+								? 'yellow'
+								: planItem.status === 'not-needed'
+								? 'gray'
+								: 'white'}
+							dimColor={planItem.status === 'not-needed'}
+						>
+							{planItem.status === 'done'
+								? ' ● '
+								: planItem.status === 'in-progress'
+								? ' ▶ '
+								: planItem.status === 'not-needed'
+								? ' ◌ '
+								: ' ○ '}
 							{planItem.text}
 						</Text>
 					</Box>
