@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { handleExit } from '../../lifecycle/handleExit';
 import { useMessageListener } from '../bindings/useMessageListener';
 import { footerHeight } from '../constants/footerHeight';
+import { useApproval } from '../contexts/ApprovalContext';
 import { useChat } from '../contexts/ChatContext';
 import { emitToListeners } from '../emitters/listener';
 import { useTerminalSize } from '../library/useTerminalSize';
@@ -20,6 +21,7 @@ import { VirtualList } from './VirtualList';
 
 export function ChatContent() {
 	const { messages, isThinking, focusedArea, setFocusedArea } = useChat();
+	const { payload } = useApproval();
 	const size = useTerminalSize();
 
 	useMessageListener();
@@ -92,7 +94,7 @@ export function ChatContent() {
 			void handleExit();
 		}
 
-		if (key.escape && isThinking) {
+		if (key.escape && isThinking && focusedArea === 'input' && !payload) {
 			emitToListeners('InterruptThought', undefined);
 		}
 	});
