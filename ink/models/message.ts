@@ -5,4 +5,5 @@ export interface Message {
 	handled?: boolean;
 	text: string;
 	args?: string;
+	callId?: string;
 }

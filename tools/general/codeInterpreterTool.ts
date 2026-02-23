@@ -4,6 +4,7 @@ import { unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import { z } from 'zod';
+import { emitToListeners } from '../../ink/emitters/listener';
 import { trackedState } from '../../lifecycle/trackedState';
 import { getEnv } from '../../utils/getEnv';
 
@@ -27,7 +28,7 @@ export const codeInterpreterTool = tool({
 
 export async function needsApproval(
 	runContext: any,
-	{ code, language }: z.infer<typeof CodeInterpreterParameters>,
+	parameters: z.infer<typeof CodeInterpreterParameters>,
 	callId?: string,
 ) {
 	if (callId && runContext.isToolApproved({ toolName: 'code_interpreter', callId })) {
@@ -36,15 +37,25 @@ export async function needsApproval(
 
 	const autoApproved = getEnv('HARPER_AGENT_AUTO_APPROVE_CODE_INTERPRETER', 'CODE_INTERPRETER_AUTO_APPROVE') === '1';
 
-	// TODO:
-	//   if (autoApproved) {
-	//   	console.log(`\n${chalk.bold.bgGreen.black(` Code interpreter (${language}, auto-approved): `)}`);
-	//   } else {
-	//   	console.log(`\n${chalk.bold.bgYellow.black(` Code interpreter (${language}) approval required: `)}`);
-	//   }
-	//   console.log(chalk.dim(code));
+	if (autoApproved) {
+		if (callId) {
+			emitToListeners('RegisterToolInfo', {
+				type: 'code_interpreter',
+				code: parameters.code,
+				callId,
+			});
+		}
+		return false;
+	}
 
-	return !autoApproved;
+	emitToListeners('OpenApprovalViewer', {
+		type: 'code_interpreter',
+		code: parameters.code,
+		mode: 'ask',
+		callId,
+	});
+
+	return true;
 }
 
 export async function execute({ code, language }: z.infer<typeof CodeInterpreterParameters>) {

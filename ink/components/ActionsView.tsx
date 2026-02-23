@@ -1,6 +1,7 @@
 import { Box, Text, useInput } from 'ink';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useActions } from '../contexts/ActionsContext';
+import { emitToListeners } from '../emitters/listener';
 import { useTerminalSize } from '../library/useTerminalSize';
 import type { ActionItem } from '../models/actionItem';
 import { ActionItemRow } from './ActionItemRow';
@@ -34,6 +35,24 @@ export function ActionsView({ height, isFocused }: Props) {
 
 		if (key.downArrow) {
 			setSelectedIndex(prev => Math.min(actions.length - 1, prev + 1));
+		}
+
+		if (key.return) {
+			const selected = actions[selectedIndex];
+			if (
+				selected
+				&& (selected.kind === 'apply_patch' || selected.kind === 'approval' || selected.title === 'shell'
+					|| selected.title === 'code_interpreter')
+			) {
+				if (selected.callId) {
+					emitToListeners('OpenApprovalViewer', {
+						type: (selected.kind === 'apply_patch' ? 'update_file' : selected.title) as any,
+						mode: 'info',
+						callId: selected.callId,
+						actionId: selected.id,
+					});
+				}
+			}
 		}
 	});
 

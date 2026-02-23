@@ -53,6 +53,25 @@ export function ChatContent() {
 			if (key.downArrow) {
 				setSelectedIndex(prev => Math.min(Math.max(0, lineItems.length - 1), prev + 1));
 			}
+
+			if (key.return) {
+				const selected = lineItems[selectedIndex];
+				if (
+					selected && selected.type === 'tool'
+					&& (selected.toolName === 'apply_patch' || selected.toolName === 'code_interpreter'
+						|| selected.toolName === 'shell')
+				) {
+					// We need to find the message to get the callId
+					const msg = messages.find(m => m.id === selected.messageId);
+					if (msg && msg.callId) {
+						emitToListeners('OpenApprovalViewer', {
+							type: selected.toolName as any,
+							mode: 'info',
+							callId: msg.callId,
+						});
+					}
+				}
+			}
 		}
 
 		if (focusedArea === 'status') {

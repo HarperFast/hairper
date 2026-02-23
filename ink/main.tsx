@@ -1,8 +1,10 @@
 import { render, useApp } from 'ink';
 import React from 'react';
 import { ChatContent } from './components/ChatContent';
+import { DiffApprovalView } from './components/DiffApprovalView';
 import { ConfigurationWizard } from './configurationWizard/ConfigurationWizard';
 import { ActionsProvider } from './contexts/ActionsContext';
+import { ApprovalProvider } from './contexts/ApprovalContext';
 import { ChatProvider } from './contexts/ChatContext';
 import { CostProvider } from './contexts/CostContext';
 import { PlanProvider } from './contexts/PlanContext';
@@ -30,11 +32,14 @@ function MainChat() {
 		<CostProvider>
 			<PlanProvider>
 				<ActionsProvider>
-					<SettingsProvider>
-						<ChatProvider>
-							<ChatContent />
-						</ChatProvider>
-					</SettingsProvider>
+					<ApprovalProvider>
+						<SettingsProvider>
+							<ChatProvider>
+								<ChatContent />
+								<DiffApprovalView />
+							</ChatProvider>
+						</SettingsProvider>
+					</ApprovalProvider>
 				</ActionsProvider>
 			</PlanProvider>
 		</CostProvider>

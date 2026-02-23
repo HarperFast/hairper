@@ -1,3 +1,4 @@
+import type { ApprovalPayload } from '../contexts/ApprovalPayload';
 import type { ActionItem } from '../models/actionItem';
 import type { Message } from '../models/message';
 import type { PlanItem } from '../models/planItem';
@@ -24,6 +25,12 @@ export interface WatchedValuesTypeMap {
 		cachedInputTokens: number;
 		hasUnknownPrices: boolean;
 	};
+	OpenApprovalViewer: ApprovalPayload;
+	CloseApprovalViewer: undefined;
+	ClearUserInput: undefined;
+	ApproveCurrentApproval: undefined;
+	DenyCurrentApproval: undefined;
+	RegisterToolInfo: ApprovalPayload & { callId: string };
 }
 
 export type WatchedValueKeys = keyof WatchedValuesTypeMap;

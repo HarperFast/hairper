@@ -1,5 +1,6 @@
 import { tool } from '@openai/agents';
 import { z } from 'zod';
+import { emitToListeners } from '../../ink/emitters/listener';
 import { mentionsIgnoredPath } from '../../utils/files/mentionsIgnoredPath';
 import { getEnv } from '../../utils/getEnv';
 import { isRiskyCommand } from '../../utils/shell/isRiskyCommand';
@@ -38,28 +39,24 @@ export const shellTool = tool({
 		const autoApproved = getEnv('HARPER_AGENT_AUTO_APPROVE_SHELL', 'SHELL_AUTO_APPROVE') === '1' && !foundRiskyCommand
 			&& !foundIgnoredInteraction;
 
-		// TODO:
-		//   if (autoApproved) {
-		//   	console.log(
-		//   		chalk.bold.bgGreen.black('\n Shell command (auto-approved): \n'),
-		//   	);
-		//   } else if (foundRiskyCommand) {
-		//   	console.log(
-		//   		chalk.bold.bgYellow.black('\n Shell command approval of risky command required: \n'),
-		//   	);
-		//   } else if (foundIgnoredInteraction) {
-		//   	console.log(
-		//   		chalk.bold.bgYellow.black('\n Shell command approval of ignored file interaction required: \n'),
-		//   	);
-		//   } else {
-		//   	console.log(
-		//   		chalk.bold.bgYellow.black('\n Shell command approval required: \n'),
-		//   	);
-		//   }
-		//   for (const cmd of commands) {
-		//   	console.log(chalk.dim(`  > ${cmd}`));
-		//   }
+		if (autoApproved) {
+			if (callId) {
+				emitToListeners('RegisterToolInfo', {
+					type: 'shell',
+					commands,
+					callId,
+				});
+			}
+			return false;
+		}
 
-		return !autoApproved;
+		emitToListeners('OpenApprovalViewer', {
+			type: 'shell',
+			commands,
+			mode: 'ask',
+			callId,
+		});
+
+		return true;
 	},
 });

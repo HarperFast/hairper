@@ -8,4 +8,5 @@ export interface ActionItem {
 	running: boolean;
 	exitCode?: number; // for shell or numeric statuses where relevant
 	status?: 'approved' | 'denied' | 'succeeded' | 'failed' | 'pending';
+	callId?: string;
 }

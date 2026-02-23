@@ -1,6 +1,6 @@
 import { Agent, type AgentInputItem, run, type RunState } from '@openai/agents';
 import { actionId } from '../ink/contexts/ActionsContext';
-import { curryEmitToListeners, emitToListeners, onceListener } from '../ink/emitters/listener';
+import { addListener, curryEmitToListeners, emitToListeners, onceListener } from '../ink/emitters/listener';
 import { handleExit } from '../lifecycle/handleExit';
 import type { CombinedSession } from '../lifecycle/session';
 import { trackedState } from '../lifecycle/trackedState';
@@ -15,6 +15,10 @@ export async function runAgentForOnePass(
 	controller: AbortController,
 ): Promise<null | RunState<undefined, Agent>> {
 	let lastToolCallInfo: string | null = null;
+	const toolInfoMap = new Map<string, any>();
+	const removeToolListener = addListener('RegisterToolInfo', (info) => {
+		toolInfoMap.set(info.callId, info);
+	});
 
 	try {
 		let hasStartedResponse = false;
@@ -76,11 +80,13 @@ export async function runAgentForOnePass(
 						const displayedArgs = args
 							? `(${args})`
 							: '()';
+						const callId = item.callId || (item as any).id;
 						emitToListeners('PushNewMessages', [{
 							type: 'tool',
 							text: name,
 							args: displayedArgs,
 							version: 1,
+							callId,
 						}]);
 						// Also add to ACTIONS pane generically
 						emitToListeners('AddActionItem', {
@@ -90,6 +96,7 @@ export async function runAgentForOnePass(
 							title: name,
 							detail: displayedArgs,
 							running: false,
+							callId,
 						});
 						// Save context for potential error reporting later
 						lastToolCallInfo = `${name}${displayedArgs}`;
@@ -141,24 +148,55 @@ export async function runAgentForOnePass(
 			emitToListeners('SetInputMode', 'approving');
 
 			for (const interruption of stream.interruptions) {
+				const callId = (interruption as any).callId || (interruption as any).id;
+				const toolName = interruption.toolName;
+				const isModalTool = toolName === 'apply_patch' || toolName === 'code_interpreter' || toolName === 'shell';
+
 				// Track ACTION item for approval with an explicit id so we can update
 				const myApprovalId = actionId;
 				emitToListeners('AddActionItem', {
 					id: myApprovalId,
-					kind: 'approval',
-					title: 'approval',
+					kind: isModalTool ? (toolName === 'apply_patch' ? 'apply_patch' : 'approval') : 'approval',
+					title: isModalTool ? toolName : 'approval',
 					detail: lastToolCallInfo ?? 'awaiting approval',
 					running: true,
+					callId,
 				});
-				const newMessages = await onceListener('PushNewMessages');
-				let approved = false;
-				for (const newMessage of newMessages) {
-					if (newMessage.type === 'user' && isTrue(newMessage.text)) {
-						approved = true;
-					}
-					newMessage.handled = true;
+
+				// Prepare approval via overlay events
+				const approvalPromise = new Promise<'approved' | 'denied'>((resolve) => {
+					const removeApprove = addListener('ApproveCurrentApproval', () => {
+						removeApprove();
+						removeDeny();
+						resolve('approved');
+					});
+					const removeDeny = addListener('DenyCurrentApproval', () => {
+						removeApprove();
+						removeDeny();
+						resolve('denied');
+					});
+				});
+
+				let result: 'approved' | 'denied';
+				if (isModalTool) {
+					// For modal tools, do NOT allow text input shortcut; rely on overlay which enforces 1s guard
+					result = await approvalPromise;
+				} else {
+					// Fallback to text input for non-patch approvals
+					const textInputPromise = onceListener('PushNewMessages').then(messages => {
+						let approved = false;
+						for (const newMessage of messages) {
+							if (newMessage.type === 'user' && isTrue(newMessage.text)) {
+								approved = true;
+							}
+							newMessage.handled = true;
+						}
+						return approved ? 'approved' : 'denied' as const;
+					});
+					result = await Promise.race([approvalPromise, textInputPromise]);
 				}
-				if (approved) {
+
+				if (result === 'approved') {
 					emitToListeners('SetInputMode', 'approved');
 					// Update approval action item
 					emitToListeners('UpdateActionItem', {
@@ -178,11 +216,14 @@ export async function runAgentForOnePass(
 					});
 					stream.state.reject(interruption);
 				}
+				// Close the viewer if it was open
+				emitToListeners('CloseApprovalViewer', undefined);
 			}
 
 			// After we finish gathering approvals or denials, we will start thinking again.
 			emitToListeners('SetThinking', true);
 			setTimeout(curryEmitToListeners('SetInputMode', 'waiting'), 1000);
+			removeToolListener();
 			return stream.state;
 		} else {
 			costTracker.recordTurn(
@@ -193,6 +234,7 @@ export async function runAgentForOnePass(
 			emitToListeners('UpdateCost', costTracker.getSessionStats());
 		}
 
+		removeToolListener();
 		return null;
 	} catch (error: any) {
 		showErrorToUser(error, lastToolCallInfo);

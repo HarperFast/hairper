@@ -3,7 +3,7 @@ import React, { useCallback, useState } from 'react';
 import { handleExit } from '../../lifecycle/handleExit';
 import { footerHeight } from '../constants/footerHeight';
 import { useChat } from '../contexts/ChatContext';
-import { emitToListeners } from '../emitters/listener';
+import { emitToListeners, useListener } from '../emitters/listener';
 import type { UserInputMode } from '../models/userInputMode';
 import { BlinkingTextInput } from './BlinkingTextInput';
 
@@ -18,6 +18,10 @@ export function UserInput() {
 	const { userInputMode, focusedArea } = useChat();
 	const [resetKey, setResetKey] = useState(0);
 	const [, setBlankLines] = useState(0);
+
+	useListener('ClearUserInput', () => {
+		setResetKey(prev => prev + 1);
+	}, []);
 
 	const borderColor = focusedArea === 'input' ? 'cyan' : 'gray';
 	const placeholder = calculatePlaceholder(userInputMode);

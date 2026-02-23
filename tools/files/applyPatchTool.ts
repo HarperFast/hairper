@@ -1,6 +1,7 @@
 import { type RunContext, tool } from '@openai/agents';
 import { z } from 'zod';
 import { agentManager } from '../../agent/AgentManager';
+import { emitToListeners } from '../../ink/emitters/listener';
 import { trackedState } from '../../lifecycle/trackedState';
 import { getEnv } from '../../utils/getEnv';
 import { execute as getHarperSkillExecute, skills as harperSkills } from '../harper/getHarperSkillTool';
@@ -78,18 +79,27 @@ export async function needsApproval(
 
 		const autoApproved = getEnv('HARPER_AGENT_AUTO_APPROVE_PATCHES', 'APPLY_PATCH_AUTO_APPROVE') === '1';
 
-		// TODO:
-		//   if (autoApproved) {
-		//   	console.log(`\n${chalk.bold.bgGreen.black(' Apply patch (auto-approved): ')}`);
-		//   } else {
-		//   	console.log(`\n${chalk.bold.bgYellow.black(' Apply patch approval required: ')}`);
-		//   }
-		//   console.log(`${chalk.bold(operation.type)}: ${operation.path}`);
-		//   if (operation.diff) {
-		//   	printDiff(operation.diff);
-		//   }
+		if (autoApproved) {
+			if (callId) {
+				emitToListeners('RegisterToolInfo', {
+					type: operation.type,
+					path: operation.path,
+					diff: operation.diff,
+					callId,
+				});
+			}
+			return false;
+		}
 
-		return !autoApproved;
+		emitToListeners('OpenApprovalViewer', {
+			type: operation.type,
+			path: operation.path,
+			diff: operation.diff,
+			mode: 'ask',
+			callId,
+		});
+
+		return true;
 	} catch (err) {
 		console.error('apply_patch approval step failed:', err);
 		return false;
@@ -102,7 +112,7 @@ export async function execute(operation: z.infer<typeof ApplyPatchParameters>) {
 		const needed = await requiredSkillForOperation(operation.path, operation.type);
 		if (needed) {
 			const content = await getHarperSkillExecute({ skill: needed });
-			// TODO: console.log(`Understanding ${needed} is necessary before applying this patch.`);
+			console.error(`Understanding ${needed} is necessary before applying this patch.`);
 			return { status: 'failed, skill guarded', output: content } as const;
 		}
 		switch (operation.type) {

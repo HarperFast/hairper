@@ -58,10 +58,27 @@ export function emitToListeners<K extends keyof WatchedValuesTypeMap, T extends 
 ): void {
 	const listeners = listenersMap[name];
 	if (listeners) {
-		for (const listener of listeners) {
+		const stableCopyOfListeners = listeners.slice();
+		for (const listener of stableCopyOfListeners) {
 			listener(value, trigger);
 		}
 	}
+}
+
+export function addListener<K extends keyof WatchedValuesTypeMap, T extends WatchedValuesTypeMap[K]>(
+	name: K,
+	callback: GenericListenerCallback<T>,
+): () => void {
+	if (!listenersMap[name]) {
+		listenersMap[name] = [];
+	}
+	listenersMap[name]!.push(callback as GenericListenerCallback);
+	return () => {
+		const index = listenersMap[name]!.indexOf(callback as GenericListenerCallback);
+		if (index >= 0) {
+			listenersMap[name]!.splice(index, 1);
+		}
+	};
 }
 
 export function curryEmitToListeners<K extends keyof WatchedValuesTypeMap, T extends WatchedValuesTypeMap[K]>(
