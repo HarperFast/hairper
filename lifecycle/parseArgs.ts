@@ -1,4 +1,3 @@
-import path from 'node:path';
 import { handleHelp, handleVersion, isHelpRequest, isVersionRequest } from '../utils/shell/cli';
 import { isTrue } from '../utils/strings/isTrue';
 import { isOpenAIModel } from './getModel';
@@ -94,13 +93,10 @@ export function parseArgs() {
 		trackedState.monitorRateLimits = false;
 	}
 
-	// Resolve immediately so the path remains stable if CWD changes later
-	const sp = trackedState.sessionPath;
-	if (sp) {
-		trackedState.sessionPath = sp && !sp.startsWith('~') && !path.isAbsolute(sp)
-			? path.resolve(process.cwd(), sp)
-			: sp;
-	}
+	// Do not eagerly resolve sessionPath here. trackedState.sessionPath now
+	// dynamically resolves relative to the nearest Harper app (config.yaml)
+	// on each access when the provided value is relative. Absolute paths and
+	// tilde-prefixed paths are passed through unchanged.
 
 	if (!trackedState.useFlexTier && isTrue(process.env.HARPER_AGENT_FLEX_TIER)) {
 		trackedState.useFlexTier = true;

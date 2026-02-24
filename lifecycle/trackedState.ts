@@ -1,7 +1,11 @@
+import { resolveSessionPathConsideringHarper } from '../utils/files/harperApp';
+
 export interface TrackedState {
+	originalCwd: string;
 	cwd: string;
 	model: string;
 	compactionModel: string;
+	originalSessionPath: string | null;
 	sessionPath: string | null;
 	useFlexTier: boolean;
 	maxTurns: number;
@@ -13,10 +17,19 @@ export interface TrackedState {
 	rateLimitThreshold: number;
 }
 export const trackedState: TrackedState = {
+	originalCwd: process.cwd(),
 	cwd: process.cwd(),
 	model: '',
 	compactionModel: '',
-	sessionPath: null,
+	originalSessionPath: null,
+
+	get sessionPath() {
+		return resolveSessionPathConsideringHarper(trackedState.originalSessionPath, this.cwd, this.originalCwd);
+	},
+	set sessionPath(value: string | null) {
+		trackedState.originalSessionPath = value;
+	},
+
 	useFlexTier: false,
 	maxTurns: 30,
 	maxCost: null,
