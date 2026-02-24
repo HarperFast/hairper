@@ -63,7 +63,7 @@ async function requiredSkillForOperation(
 const editor = new WorkspaceEditor(() => trackedState.cwd);
 
 export async function needsApproval(
-	runContext: RunContext,
+	runContext: Pick<RunContext, 'isToolApproved'>,
 	operation: z.infer<typeof ApplyPatchParameters>,
 	callId?: string,
 ) {
@@ -129,7 +129,7 @@ export async function execute(operation: z.infer<typeof ApplyPatchParameters>) {
 			case 'delete_file':
 				return await editor.deleteFile(operation as any);
 			default:
-				return { status: 'failed', output: `Error: Unknown operation type: ${(operation as any).type}` } as const;
+				return { status: 'failed', output: `Error: Unknown operation type: ${operation.type}` } as const;
 		}
 	} catch (err) {
 		console.error('hit unexpected error in apply patch tool', err);

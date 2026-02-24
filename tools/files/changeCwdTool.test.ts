@@ -31,7 +31,7 @@ describe('changeCwdTool', () => {
 	});
 
 	it('switches to an absolute directory path', async () => {
-		const result = await changeCwd({ path: tempDir } as any);
+		const result = await changeCwd({ path: tempDir });
 		expect(result).toContain('Switched current working directory');
 		const expected = await realpath(tempDir);
 		expect(process.cwd()).toBe(expected);
@@ -40,10 +40,10 @@ describe('changeCwdTool', () => {
 
 	it('switches to a relative directory path from current tracked cwd', async () => {
 		// First hop to tempDir, then create a child directory and cd into it by relative name
-		await changeCwd({ path: tempDir } as any);
+		await changeCwd({ path: tempDir });
 		const child = path.join(tempDir, 'child');
 		await (await import('node:fs/promises')).mkdir(child);
-		const result = await changeCwd({ path: 'child' } as any);
+		const result = await changeCwd({ path: 'child' });
 		expect(result).toContain('Switched current working directory');
 		const expected = await realpath(child);
 		expect(process.cwd()).toBe(expected);
@@ -52,7 +52,7 @@ describe('changeCwdTool', () => {
 
 	it('returns an error for non-existent path and does not change cwd', async () => {
 		const before = process.cwd();
-		const result = await changeCwd({ path: path.join(tempDir, 'does-not-exist') } as any);
+		const result = await changeCwd({ path: path.join(tempDir, 'does-not-exist') });
 		expect(result).toContain('Failed to change directory');
 		expect(process.cwd()).toBe(before);
 		expect(trackedState.cwd).toBe(before);

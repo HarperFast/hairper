@@ -6,7 +6,7 @@ import { execute as applyExecute, needsApproval as applyNeedsApproval } from './
 // Minimal RunContext stub
 const runContextStub = {
 	isToolApproved: () => false,
-} as any;
+};
 
 describe('applyPatchTool guards', () => {
 	beforeEach(() => {
@@ -28,7 +28,7 @@ describe('applyPatchTool guards', () => {
 			async getSkillsRead() {
 				return [];
 			},
-		} as any;
+		};
 
 		const operation = {
 			type: 'create_file' as const,
@@ -42,7 +42,7 @@ describe('applyPatchTool guards', () => {
 		const result = await applyExecute(operation);
 		expect(result && typeof result.output === 'string').toBe(true);
 
-		const expected = await getHarperSkillExecute({ skill: targetSkill } as any);
+		const expected = await getHarperSkillExecute({ skill: targetSkill });
 		expect(result.output).toBe(expected);
 	});
 });

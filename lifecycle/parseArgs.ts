@@ -50,7 +50,7 @@ export function parseArgs() {
 					if (args[i + 1]) {
 						const val = stripQuotes(args[++i]!);
 						if (key === 'maxTurns' || key === 'maxCost' || key === 'rateLimitThreshold') {
-							(trackedState as any)[key] = parseFloat(val);
+							trackedState[key] = parseFloat(val);
 						} else {
 							trackedState[key] = val;
 						}
@@ -60,7 +60,7 @@ export function parseArgs() {
 				} else if (arg.startsWith(`${prefix}=`)) {
 					const val = stripQuotes(arg.slice(prefix.length + 1));
 					if (key === 'maxTurns' || key === 'maxCost' || key === 'rateLimitThreshold') {
-						(trackedState as any)[key] = parseFloat(val);
+						trackedState[key] = parseFloat(val);
 					} else {
 						trackedState[key] = val;
 					}

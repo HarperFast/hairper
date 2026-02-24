@@ -67,7 +67,7 @@ export function ChatContent() {
 					const msg = messages.find(m => m.id === selected.messageId);
 					if (msg && msg.callId) {
 						emitToListeners('OpenApprovalViewer', {
-							type: selected.toolName as any,
+							type: selected.toolName,
 							mode: 'info',
 							callId: msg.callId,
 						});

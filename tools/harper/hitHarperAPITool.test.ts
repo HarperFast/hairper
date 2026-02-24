@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import { hitHarperAPITool } from './hitHarperAPITool';
 
 describe('hitHarperAPITool needsApproval', () => {
-	// @ts-expect-error - simple mock context
 	const runContext: RunContext = {
 		isToolApproved: () => false,
 	} as any;

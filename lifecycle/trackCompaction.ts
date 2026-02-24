@@ -85,8 +85,6 @@ export function trackCompaction(session: WithRunCompaction) {
 					`${name}:${code}${statusStr} ${message}${hint}${compactionCtx}${argsSnippet}${responseDataSnippet}${stack}`,
 				version: 1,
 			}]);
-
-			return undefined as any;
 		}
 	};
 }

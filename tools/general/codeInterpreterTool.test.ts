@@ -37,7 +37,7 @@ describe('codeInterpreterTool', () => {
 		it('should return true if HARPER_AGENT_AUTO_APPROVE_CODE_INTERPRETER is not set', async () => {
 			delete process.env.HARPER_AGENT_AUTO_APPROVE_CODE_INTERPRETER;
 			delete process.env.CODE_INTERPRETER_AUTO_APPROVE;
-			const result = await needsApproval({ isToolApproved: () => false } as any, {
+			const result = await needsApproval({ isToolApproved: () => false }, {
 				code: 'print("test")',
 				language: 'python',
 			});
@@ -46,7 +46,7 @@ describe('codeInterpreterTool', () => {
 
 		it('should return false if HARPER_AGENT_AUTO_APPROVE_CODE_INTERPRETER is set to 1', async () => {
 			process.env.HARPER_AGENT_AUTO_APPROVE_CODE_INTERPRETER = '1';
-			const result = await needsApproval({ isToolApproved: () => false } as any, {
+			const result = await needsApproval({ isToolApproved: () => false }, {
 				code: 'print("test")',
 				language: 'python',
 			});
@@ -58,7 +58,7 @@ describe('codeInterpreterTool', () => {
 			process.env.CODE_INTERPRETER_AUTO_APPROVE = '1';
 			const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-			const result = await needsApproval({ isToolApproved: () => false } as any, {
+			const result = await needsApproval({ isToolApproved: () => false }, {
 				code: 'print("test")',
 				language: 'python',
 			});
@@ -70,7 +70,7 @@ describe('codeInterpreterTool', () => {
 
 		it('should return false if already approved', async () => {
 			const result = await needsApproval(
-				{ isToolApproved: () => true } as any,
+				{ isToolApproved: () => true },
 				{ code: 'print("test")', language: 'python' },
 				'call-123',
 			);

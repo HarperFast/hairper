@@ -49,7 +49,7 @@ export async function execute({ directoryName, template }: z.infer<typeof ToolPa
 		execSync('git init', { cwd: resolvedPath, stdio: 'ignore' });
 
 		// Automatically switch into the newly created app directory
-		const switchedDir = await changeCwd({ path: resolvedPath } as any);
+		const switchedDir = await changeCwd({ path: resolvedPath });
 
 		return `Successfully created a new Harper application in '${resolvedPath}' using template '${template}' with a matching Git repository initialized.  Use the readDir and readFile tools to inspect the contents of the application. ${switchedDir}.`;
 	} catch (error: any) {

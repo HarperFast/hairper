@@ -1,4 +1,4 @@
-import { tool } from '@openai/agents';
+import { type RunContext, tool } from '@openai/agents';
 import { exec } from 'node:child_process';
 import { unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -27,7 +27,7 @@ export const codeInterpreterTool = tool({
 });
 
 export async function needsApproval(
-	runContext: any,
+	runContext: Pick<RunContext, 'isToolApproved'>,
 	parameters: z.infer<typeof CodeInterpreterParameters>,
 	callId?: string,
 ) {

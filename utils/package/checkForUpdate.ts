@@ -128,9 +128,9 @@ function UpdatePrompt({ packageName, currentVersion, latestVersion, onSelect }: 
 		React.createElement(
 			Box,
 			{ marginTop: 1 },
-			React.createElement(Select as any, {
+			React.createElement(Select, {
 				options,
-				onChange: (v: any) => onSelect(v as UpdateChoice),
+				onChange: (v) => onSelect(v as UpdateChoice),
 			}),
 		),
 	);

@@ -41,7 +41,7 @@ describe('createNewHarperApplicationTool', () => {
 		await mkdir(resolved, { recursive: true }); // simulate a directory created by npm
 		await writeFile(path.join(resolved, 'AGENTS.md'), '# Agents');
 
-		const result = await createHarper({ directoryName: appName, template: 'vanilla-ts' } as any);
+		const result = await createHarper({ directoryName: appName, template: 'vanilla-ts' });
 		expect(result).toContain('Successfully created a new Harper application');
 		expect(result).toContain('I strongly suggest you use these newfound skills!');
 		expect(result).toContain('AGENTS.md');
@@ -55,7 +55,7 @@ describe('createNewHarperApplicationTool', () => {
 		const resolved = path.join(baseDir, appName);
 		await mkdir(resolved, { recursive: true });
 
-		const result = await createHarper({ directoryName: appName, template: 'vanilla-ts' } as any);
+		const result = await createHarper({ directoryName: appName, template: 'vanilla-ts' });
 		expect(result).toContain('Successfully created a new Harper application');
 		expect(result).not.toContain('I strongly suggest you read it next');
 		expect(result).not.toContain('AGENTS.md');
