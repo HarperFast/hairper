@@ -1,10 +1,20 @@
+import {
+	defaultAnthropicCompactionModel,
+	defaultAnthropicModel,
+	defaultCompactionModel,
+	defaultGoogleCompactionModel,
+	defaultGoogleModel,
+	defaultModel,
+	defaultOllamaCompactionModel,
+	defaultOllamaModel,
+} from '../../agent/defaults';
 import type { ModelProvider } from '../models/config';
 
 export const modelsByProvider: Record<ModelProvider, string[]> = {
-	OpenAI: ['gpt-5.2', 'gpt-5.0', 'gpt-5-nano'],
-	Anthropic: ['claude-4-6-opus-latest', 'claude-4-5-sonnet-latest', 'claude-4-5-haiku-latest'],
-	Google: ['gemini-3-pro', 'gemini-3-flash', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'],
-	Ollama: ['qwen3-coder:30b', 'mistral', 'codellama'],
+	OpenAI: [defaultModel, 'gpt-5.0', defaultCompactionModel],
+	Anthropic: [defaultAnthropicModel, 'claude-4-5-sonnet-latest', defaultAnthropicCompactionModel],
+	Google: [defaultGoogleModel, 'gemini-3-flash', 'gemini-2.5-flash', defaultGoogleCompactionModel],
+	Ollama: [defaultOllamaModel, 'mistral', defaultOllamaCompactionModel],
 };
 
 export const compactorModelsByProvider: Record<ModelProvider, string[]> = {

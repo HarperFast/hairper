@@ -6,20 +6,35 @@ export function getModelContextLimit(modelName: string | undefined | null): numb
 	const name = modelName.toLowerCase();
 
 	// OpenAI (fallbacks for non-OpenAI path if ever used here)
-	if (name.startsWith('gpt-4o') || name.startsWith('gpt-5')) { return 200_000; // typical 128k–200k; be safe
-	 }
-	if (name.startsWith('gpt-4')) { return 128_000; }
+	if (name.startsWith('gpt-4o') || name.startsWith('gpt-5')) {
+		return 200_000; // typical 128k–200k; be safe
+	}
+
+	if (name.startsWith('gpt-4')) {
+		return 128_000;
+	}
 
 	// Anthropic
-	if (name.startsWith('claude-3.5') || name.startsWith('claude-3')) { return 200_000; }
+	if (name.startsWith('claude-3.5') || name.startsWith('claude-3')) {
+		return 200_000;
+	}
+	if (name.startsWith('claude-4.6') || name.startsWith('claude-4.5')) {
+		return 1_000_000;
+	}
 
 	// Google Gemini
-	if (name.startsWith('gemini-1.5')) { return 1_000_000; // generous default for 1.5
-	 }
-	if (name.startsWith('gemini-')) { return 128_000; }
+	if (name.startsWith('gemini-1.5') || name.startsWith('gemini-3')) {
+		return 1_000_000;
+	}
 
-	// Ollama/local models often default to 4k–8k; use 8k as safe default
-	if (name.startsWith('ollama-')) { return 8_000; }
+	if (name.startsWith('gemini-')) {
+		return 128_000;
+	}
+
+	if (name.startsWith('ollama-')) {
+		// Ollama/local models often default to 4k–8k; use 8k as safe default
+		return 8_000;
+	}
 
 	return DEFAULT_LIMIT;
 }

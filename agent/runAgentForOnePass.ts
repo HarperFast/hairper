@@ -211,8 +211,8 @@ export async function runAgentForOnePass(
 			if (trackedState.maxCost !== null) {
 				const estimatedTotalCost = costTracker.getEstimatedTotalCost(
 					stream.state.usage,
-					trackedState.model || 'gpt-5.2',
-					trackedState.compactionModel || 'gpt-5-nano',
+					trackedState.model,
+					trackedState.compactionModel,
 				);
 				if (estimatedTotalCost > trackedState.maxCost) {
 					emitToListeners('SetInputMode', 'denied');

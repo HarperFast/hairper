@@ -1,3 +1,13 @@
+import {
+	defaultAnthropicCompactionModel,
+	defaultAnthropicModel,
+	defaultCompactionModel,
+	defaultGoogleCompactionModel,
+	defaultGoogleModel,
+	defaultModel,
+	defaultOllamaCompactionModel,
+	defaultOllamaModel,
+} from '../agent/defaults';
 import { getDeprecatedReplacement, warnAndPersistRedirect } from '../utils/models/deprecations';
 import { handleHelp, handleVersion, isHelpRequest, isVersionRequest } from '../utils/shell/cli';
 import { isTrue } from '../utils/strings/isTrue';
@@ -116,15 +126,13 @@ export function parseArgs() {
 	// If no model was provided, select a sensible default based on available provider env keys
 	if (!trackedState.model) {
 		if (process.env.ANTHROPIC_API_KEY) {
-			trackedState.model = 'claude-3-7-sonnet-latest';
+			trackedState.model = defaultAnthropicModel;
 		} else if (process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-			trackedState.model = 'gemini-2.0-flash';
-		} else if (process.env.OPENAI_API_KEY) {
-			trackedState.model = 'gpt-5.2';
+			trackedState.model = defaultGoogleModel;
 		} else if (process.env.OLLAMA_BASE_URL) {
-			trackedState.model = 'ollama-qwen3-coder:30b';
+			trackedState.model = defaultOllamaModel;
 		} else {
-			trackedState.model = 'gpt-5.2';
+			trackedState.model = defaultModel;
 		}
 	}
 
@@ -132,13 +140,13 @@ export function parseArgs() {
 	if (!trackedState.compactionModel) {
 		const m = trackedState.model;
 		if (m.startsWith('claude-')) {
-			trackedState.compactionModel = 'claude-3-5-haiku-latest';
+			trackedState.compactionModel = defaultAnthropicCompactionModel;
 		} else if (m.startsWith('gemini-')) {
-			trackedState.compactionModel = 'gemini-1.5-flash';
+			trackedState.compactionModel = defaultGoogleCompactionModel;
 		} else if (m.startsWith('ollama-')) {
-			trackedState.compactionModel = 'ollama-qwen2.5-coder';
+			trackedState.compactionModel = defaultOllamaCompactionModel;
 		} else {
-			trackedState.compactionModel = 'gpt-5-nano';
+			trackedState.compactionModel = defaultCompactionModel;
 		}
 	}
 

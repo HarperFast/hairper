@@ -1,6 +1,13 @@
 import path from 'node:path';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+	defaultAnthropicCompactionModel,
+	defaultAnthropicModel,
+	defaultCompactionModel,
+	defaultGoogleCompactionModel,
+	defaultGoogleModel,
+	defaultModel,
+} from '../agent/defaults';
 import { updateEnv } from '../utils/files/updateEnv';
 import { parseArgs } from './parseArgs';
 import { trackedState } from './trackedState';
@@ -55,22 +62,22 @@ describe('parseArgs defaults based on ENV provider keys', () => {
 	it('prefers Anthropic when ANTHROPIC_API_KEY is present', () => {
 		process.env.ANTHROPIC_API_KEY = 'sk-ant-123';
 		parseArgs();
-		expect(trackedState.model).toBe('claude-3-7-sonnet-latest');
-		expect(trackedState.compactionModel).toBe('claude-3-5-haiku-latest');
+		expect(trackedState.model).toBe(defaultAnthropicModel);
+		expect(trackedState.compactionModel).toBe(defaultAnthropicCompactionModel);
 	});
 
 	it('uses Google default when GOOGLE_GENERATIVE_AI_API_KEY is present', () => {
 		process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'sk-gai-123';
 		parseArgs();
-		expect(trackedState.model).toBe('gemini-2.0-flash');
-		expect(trackedState.compactionModel).toBe('gemini-1.5-flash');
+		expect(trackedState.model).toBe(defaultGoogleModel);
+		expect(trackedState.compactionModel).toBe(defaultGoogleCompactionModel);
 	});
 
 	it('uses OpenAI default when OPENAI_API_KEY is present', () => {
 		process.env.OPENAI_API_KEY = 'sk-openai-123';
 		parseArgs();
-		expect(trackedState.model).toBe('gpt-5.2');
-		expect(trackedState.compactionModel).toBe('gpt-5-nano');
+		expect(trackedState.model).toBe(defaultModel);
+		expect(trackedState.compactionModel).toBe(defaultCompactionModel);
 	});
 
 	it('uses Ollama default when OLLAMA_BASE_URL is present', () => {
@@ -92,7 +99,7 @@ describe('parseArgs defaults based on ENV provider keys', () => {
 		process.env.GOOGLE_GENERATIVE_AI_API_KEY = 'sk-gai-123';
 		process.env.ANTHROPIC_API_KEY = 'sk-ant-123';
 		parseArgs();
-		expect(trackedState.model).toBe('claude-3-7-sonnet-latest');
+		expect(trackedState.model).toBe(defaultAnthropicModel);
 	});
 });
 
@@ -279,7 +286,7 @@ describe('parseArgs edge cases and mixed scenarios', () => {
 	it('handles empty value in prefix= by falling back to default', () => {
 		process.argv.push('--model=');
 		parseArgs();
-		expect(trackedState.model).toBe('gpt-5.2');
+		expect(trackedState.model).toBe(defaultModel);
 	});
 
 	it('handles single quotes in arguments', () => {
@@ -292,7 +299,7 @@ describe('parseArgs edge cases and mixed scenarios', () => {
 		process.env.ANTHROPIC_API_KEY = 'sk-ant-123';
 		delete process.env.OPENAI_AGENTS_DISABLE_TRACING;
 		parseArgs();
-		expect(trackedState.model).toBe('claude-3-7-sonnet-latest');
+		expect(trackedState.model).toBe(defaultAnthropicModel);
 		expect(process.env.OPENAI_AGENTS_DISABLE_TRACING).toBe('1');
 	});
 
@@ -300,7 +307,7 @@ describe('parseArgs edge cases and mixed scenarios', () => {
 		process.env.OPENAI_API_KEY = 'sk-openai-123';
 		delete process.env.OPENAI_AGENTS_DISABLE_TRACING;
 		parseArgs();
-		expect(trackedState.model).toBe('gpt-5.2');
+		expect(trackedState.model).toBe(defaultModel);
 		expect(process.env.OPENAI_AGENTS_DISABLE_TRACING).toBeUndefined();
 	});
 

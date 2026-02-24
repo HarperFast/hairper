@@ -1,4 +1,11 @@
 import chalk from 'chalk';
+import {
+	defaultAnthropicModel,
+	defaultCompactionModel,
+	defaultModel,
+	defaultOllamaCompactionModel,
+	defaultOllamaModel,
+} from '../../agent/defaults';
 import { getOwnPackageJson } from '../package/getOwnPackageJson';
 
 /**
@@ -31,10 +38,10 @@ ${chalk.bold('USAGE')}
 ${chalk.bold('OPTIONS')}
   -h, --help              Show help information
   -v, --version           Show version information
-  -m, --model             Specify the model to use (e.g., gpt-5.2, claude-3-5-sonnet, ollama-llama3)
+  -m, --model             Specify the model to use (e.g., ${defaultModel}, ${defaultAnthropicModel}, ${defaultOllamaModel})
                           Can also be set via HARPER_AGENT_MODEL environment variable.
-                          For Ollama, use the ollama- prefix (e.g., ollama-llama3).
-  -c, --compaction-model  Specify the compaction model to use (defaults to gpt-5-nano).
+                          For Ollama, use the ollama- prefix (e.g., ${defaultOllamaCompactionModel}).
+  -c, --compaction-model  Specify the compaction model to use (defaults to ${defaultCompactionModel}).
                           Can also be set via HARPER_AGENT_COMPACTION_MODEL environment variable.
   -s, --session           Specify a path to a SQLite database file to persist the chat session.
                           Can also be set via HARPER_AGENT_SESSION environment variable.

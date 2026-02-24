@@ -74,10 +74,10 @@ By default, `harper-agent` uses OpenAI. You can switch to other models using the
 
 ```bash
 # Use Claude 3.5 Sonnet
-harper-agent --model claude-3-5-sonnet-20241022
+harper-agent --model claude-4-6-opus-latest
 
 # Use Gemini 1.5 Pro
-harper-agent --model gemini-1.5-pro
+harper-agent --model gemini-3-pro
 
 # Use a specific OpenAI model
 harper-agent --model gpt-5.2
@@ -91,7 +91,7 @@ By default, `harper-agent` uses `gpt-5-nano` for session memory compaction. You 
 
 ```bash
 # Use a different compaction model
-harper-agent --compaction-model claude-3-haiku-20240307
+harper-agent --compaction-model claude-4-5-haiku-latest
 ```
 
 You can also set the default compaction model via the `HARPER_AGENT_COMPACTION_MODEL` environment variable.
@@ -128,14 +128,14 @@ To use local models with [Ollama](https://ollama.com/), use the `ollama-` prefix
 
 ```bash
 # Use Llama 3 via Ollama
-harper-agent --model ollama-llama3
+harper-agent --model ollama-qwen2.5-coder
 ```
 
 If your Ollama instance is running on a custom URL, you can set the `OLLAMA_BASE_URL` environment variable:
 
 ```bash
 export OLLAMA_BASE_URL=http://localhost:11434
-harper-agent --model ollama-llama3
+harper-agent --model ollama-qwen2.5-coder
 ```
 
 ### OpenAI API Key Permissions
