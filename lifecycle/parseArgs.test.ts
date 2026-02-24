@@ -3,10 +3,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
 	defaultAnthropicCompactionModel,
 	defaultAnthropicModel,
-	defaultCompactionModel,
 	defaultGoogleCompactionModel,
 	defaultGoogleModel,
-	defaultModel,
+	defaultOpenAICompactionModel,
+	defaultOpenAIModel,
 } from '../agent/defaults';
 import { updateEnv } from '../utils/files/updateEnv';
 import { parseArgs } from './parseArgs';
@@ -76,8 +76,8 @@ describe('parseArgs defaults based on ENV provider keys', () => {
 	it('uses OpenAI default when OPENAI_API_KEY is present', () => {
 		process.env.OPENAI_API_KEY = 'sk-openai-123';
 		parseArgs();
-		expect(trackedState.model).toBe(defaultModel);
-		expect(trackedState.compactionModel).toBe(defaultCompactionModel);
+		expect(trackedState.model).toBe(defaultOpenAIModel);
+		expect(trackedState.compactionModel).toBe(defaultOpenAICompactionModel);
 	});
 
 	it('uses Ollama default when OLLAMA_BASE_URL is present', () => {
@@ -286,7 +286,7 @@ describe('parseArgs edge cases and mixed scenarios', () => {
 	it('handles empty value in prefix= by falling back to default', () => {
 		process.argv.push('--model=');
 		parseArgs();
-		expect(trackedState.model).toBe(defaultModel);
+		expect(trackedState.model).toBe(defaultOpenAIModel);
 	});
 
 	it('handles single quotes in arguments', () => {
@@ -307,7 +307,7 @@ describe('parseArgs edge cases and mixed scenarios', () => {
 		process.env.OPENAI_API_KEY = 'sk-openai-123';
 		delete process.env.OPENAI_AGENTS_DISABLE_TRACING;
 		parseArgs();
-		expect(trackedState.model).toBe(defaultModel);
+		expect(trackedState.model).toBe(defaultOpenAIModel);
 		expect(process.env.OPENAI_AGENTS_DISABLE_TRACING).toBeUndefined();
 	});
 

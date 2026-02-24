@@ -1,5 +1,7 @@
-export const defaultModel = 'gpt-5.2';
-export const defaultCompactionModel = 'gpt-5-nano';
+export const defaultModelToken = 'default';
+
+export const defaultOpenAIModel = 'gpt-5.2';
+export const defaultOpenAICompactionModel = 'gpt-5-nano';
 
 export const defaultAnthropicModel = 'claude-4-6-opus-latest';
 export const defaultAnthropicCompactionModel = 'claude-4-5-haiku-latest';
@@ -9,3 +11,17 @@ export const defaultGoogleCompactionModel = 'gemini-2.5-flash-lite';
 
 export const defaultOllamaModel = 'ollama-qwen3-coder:30b';
 export const defaultOllamaCompactionModel = 'ollama-qwen2.5-coder';
+
+export const defaultModels = [
+	defaultOpenAIModel,
+	defaultAnthropicModel,
+	defaultGoogleModel,
+	defaultOllamaModel,
+];
+
+export const defaultCompactionModels = [
+	defaultOpenAICompactionModel,
+	defaultAnthropicCompactionModel,
+	defaultGoogleCompactionModel,
+	defaultOllamaCompactionModel,
+];

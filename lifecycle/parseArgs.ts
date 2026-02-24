@@ -1,12 +1,13 @@
 import {
 	defaultAnthropicCompactionModel,
 	defaultAnthropicModel,
-	defaultCompactionModel,
 	defaultGoogleCompactionModel,
 	defaultGoogleModel,
-	defaultModel,
+	defaultModelToken,
 	defaultOllamaCompactionModel,
 	defaultOllamaModel,
+	defaultOpenAICompactionModel,
+	defaultOpenAIModel,
 } from '../agent/defaults';
 import { getDeprecatedReplacement, warnAndPersistRedirect } from '../utils/models/deprecations';
 import { handleHelp, handleVersion, isHelpRequest, isVersionRequest } from '../utils/shell/cli';
@@ -123,8 +124,9 @@ export function parseArgs() {
 		trackedState.autoApproveShell = true;
 	}
 
-	// If no model was provided, select a sensible default based on available provider env keys
-	if (!trackedState.model) {
+	// If no model was provided, or it was explicitly set to the sentinel 'default',
+	// select a sensible default based on available provider env keys
+	if (!trackedState.model || trackedState.model === defaultModelToken) {
 		if (process.env.ANTHROPIC_API_KEY) {
 			trackedState.model = defaultAnthropicModel;
 		} else if (process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
@@ -132,12 +134,13 @@ export function parseArgs() {
 		} else if (process.env.OLLAMA_BASE_URL) {
 			trackedState.model = defaultOllamaModel;
 		} else {
-			trackedState.model = defaultModel;
+			trackedState.model = defaultOpenAIModel;
 		}
 	}
 
-	// If no compaction model was provided, align it with the chosen provider to avoid extra API key prompts
-	if (!trackedState.compactionModel) {
+	// If no compaction model was provided, or it was 'default', align it with the provider
+	// inferred from the resolved primary model to avoid extra API key prompts
+	if (!trackedState.compactionModel || trackedState.compactionModel === defaultModelToken) {
 		const m = trackedState.model;
 		if (m.startsWith('claude-')) {
 			trackedState.compactionModel = defaultAnthropicCompactionModel;
@@ -146,7 +149,7 @@ export function parseArgs() {
 		} else if (m.startsWith('ollama-')) {
 			trackedState.compactionModel = defaultOllamaCompactionModel;
 		} else {
-			trackedState.compactionModel = defaultCompactionModel;
+			trackedState.compactionModel = defaultOpenAICompactionModel;
 		}
 	}
 

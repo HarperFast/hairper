@@ -1,17 +1,17 @@
 import {
 	defaultAnthropicCompactionModel,
 	defaultAnthropicModel,
-	defaultCompactionModel,
 	defaultGoogleCompactionModel,
 	defaultGoogleModel,
-	defaultModel,
 	defaultOllamaCompactionModel,
 	defaultOllamaModel,
+	defaultOpenAICompactionModel,
+	defaultOpenAIModel,
 } from '../../agent/defaults';
 import type { ModelProvider } from '../models/config';
 
 export const modelsByProvider: Record<ModelProvider, string[]> = {
-	OpenAI: [defaultModel, 'gpt-5.0', defaultCompactionModel],
+	OpenAI: [defaultOpenAIModel, 'gpt-5.0', defaultOpenAICompactionModel],
 	Anthropic: [defaultAnthropicModel, 'claude-4-5-sonnet-latest', defaultAnthropicCompactionModel],
 	Google: [defaultGoogleModel, 'gemini-3-flash', 'gemini-2.5-flash', defaultGoogleCompactionModel],
 	Ollama: [defaultOllamaModel, 'mistral', defaultOllamaCompactionModel],

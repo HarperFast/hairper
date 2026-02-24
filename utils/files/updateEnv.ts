@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { defaultCompactionModels, defaultModels, defaultModelToken } from '../../agent/defaults';
 import { trackedState } from '../../lifecycle/trackedState';
 
 /**
@@ -12,7 +13,15 @@ import { trackedState } from '../../lifecycle/trackedState';
  * @returns A promise that resolves to true if successful, or throws an error.
  */
 export function updateEnv(key: string, value: string) {
-	process.env[key] = value;
+	// If caller is trying to persist baseline defaults, normalize to the string 'default'.
+	// This allows future runs to pick up provider-specific latest defaults automatically.
+	const normalizedValue = (key === 'HARPER_AGENT_MODEL' && defaultModels.includes(value))
+		? defaultModelToken
+		: (key === 'HARPER_AGENT_COMPACTION_MODEL' && defaultCompactionModels.includes(value))
+		? defaultModelToken
+		: value;
+
+	process.env[key] = normalizedValue;
 	const topLevelEnvPath = join(homedir(), '.harper', 'harper-agent-env');
 	const localEnvPath = join(trackedState.cwd, '.env');
 
@@ -32,12 +41,12 @@ export function updateEnv(key: string, value: string) {
 
 	const regex = new RegExp(`^${key}=.*`, 'm');
 	if (regex.test(envContent)) {
-		envContent = envContent.replace(regex, `${key}=${value}`);
+		envContent = envContent.replace(regex, `${key}=${normalizedValue}`);
 	} else {
 		if (envContent && !envContent.endsWith('\n')) {
 			envContent += '\n';
 		}
-		envContent += `${key}=${value}\n`;
+		envContent += `${key}=${normalizedValue}\n`;
 	}
 
 	writeFileSync(envPath, envContent);

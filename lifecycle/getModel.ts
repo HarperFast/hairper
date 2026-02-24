@@ -4,11 +4,11 @@ import { openai } from '@ai-sdk/openai';
 import { aisdk } from '@openai/agents-extensions';
 import { AiSdkModel } from '@openai/agents-extensions/ai-sdk';
 import { createOllama, ollama } from 'ollama-ai-provider-v2';
-import { defaultModel } from '../agent/defaults';
+import { defaultOpenAIModel } from '../agent/defaults';
 import type { ModelProvider } from '../ink/models/config';
 
 export function isOpenAIModel(modelName: string): boolean {
-	if (!modelName || modelName === defaultModel) {
+	if (!modelName || modelName === defaultOpenAIModel) {
 		return true;
 	}
 
