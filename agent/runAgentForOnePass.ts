@@ -58,6 +58,59 @@ export async function runAgentForOnePass(
 			maxTurns: trackedState.maxTurns,
 		});
 
+		const pushNewItemsIntoSession = async () => {
+			const newItems = stream.newItems.filter((item: any) => {
+				if ('status' in item) {
+					return item.status === 'completed';
+				}
+				return true;
+			}).map((item: any) => {
+				const json = typeof item.toJSON === 'function' ? item.toJSON() : item;
+				if (json && typeof json === 'object' && 'rawItem' in json) {
+					return json.rawItem;
+				}
+				return json;
+			});
+
+			// Prevent pushing orphaned function_call_result items
+			const itemsToPush: any[] = [];
+			const callIds = new Set<string>();
+			const resultIds = new Set<string>();
+
+			// First, identify all calls we are pushing
+			for (const item of newItems) {
+				if (item.type === 'function_call') {
+					callIds.add(item.callId);
+				} else if (item.type === 'function_call_result') {
+					resultIds.add(item.callId);
+				}
+			}
+
+			// Get existing items from session to see if calls for results are already there
+			const existingItems = await session.getItems();
+			for (const item of existingItems as any[]) {
+				if (item.type === 'function_call') {
+					callIds.add(item.callId);
+				} else if (item.type === 'function_call_result') {
+					resultIds.add(item.callId);
+				}
+			}
+
+			for (const item of newItems) {
+				if (item.type === 'function_call' || item.type === 'function_call_result') {
+					if (!callIds.has(item.callId) || !resultIds.has(item.callId)) {
+						// Orphaned result, skip it to avoid 400 error from OpenAI
+						continue;
+					}
+				}
+				itemsToPush.push(item);
+			}
+
+			if (itemsToPush.length > 0) {
+				await session.addItems(itemsToPush as any);
+			}
+		};
+
 		for await (const event of stream) {
 			// Rate limit monitoring: if approaching limits, either slow down or require approval
 			if (trackedState.monitorRateLimits) {
@@ -91,7 +144,8 @@ export async function runAgentForOnePass(
 							text: 'Operation canceled due to rate limits.',
 							version: 1,
 						}]);
-						if (controller) { controller.abort(); }
+						await pushNewItemsIntoSession();
+						controller.abort();
 						process.exitCode = 1;
 						await handleExit();
 					}
@@ -170,7 +224,7 @@ export async function runAgentForOnePass(
 						trackedState.maxTurns = stream.state._maxTurns;
 						emitToListeners('SettingsUpdated', undefined);
 						if (trackedState.currentTurn + 1 >= trackedState.maxTurns) {
-							trackedState.currentTurn = 0;
+							await pushNewItemsIntoSession();
 							emitToListeners('PushNewMessages', [{
 								type: 'interrupted',
 								text: `- max turns reached${trackedState.autonomous ? ', thinking for a moment' : ''} -`,
@@ -242,9 +296,8 @@ export async function runAgentForOnePass(
 						text: `Cost limit exceeded: $${estimatedTotalCost.toFixed(4)} > $${trackedState.maxCost.toFixed(4)}`,
 						version: 1,
 					}]);
-					if (controller) {
-						controller.abort();
-					}
+					await pushNewItemsIntoSession();
+					controller.abort();
 					process.exitCode = 1;
 					await handleExit();
 				}

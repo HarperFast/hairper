@@ -225,8 +225,8 @@ export class AgentManager {
 					await handleExit();
 				} else {
 					// In autonomous mode, we might want to run compaction between loops to keep the context clean
+					await sleep(1_000);
 					await this.session?.runCompaction({ force: true });
-					await sleep(5_000);
 					trackedState.currentTurn = 0;
 					this.resumeState = null;
 					this.controller = new AbortController();
