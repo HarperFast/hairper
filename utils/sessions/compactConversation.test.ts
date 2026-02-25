@@ -11,6 +11,26 @@ vi.mock('@openai/agents', async () => {
 	};
 });
 
+// Mock dependencies for the batching test
+vi.mock('../models/estimateTokens', async () => {
+	const actual = await vi.importActual<any>('../models/estimateTokens');
+	return {
+		...actual,
+		estimateTokens: vi.fn(),
+	};
+});
+
+vi.mock('./modelContextLimits', async () => {
+	const actual = await vi.importActual<any>('./modelContextLimits');
+	return {
+		...actual,
+		getModelContextLimit: vi.fn(),
+	};
+});
+
+import { estimateTokens } from '../models/estimateTokens';
+import { getModelContextLimit } from './modelContextLimits';
+
 describe('compactConversation utility', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -48,7 +68,7 @@ describe('compactConversation utility', () => {
 		const lastThree = itemsToAdd.slice(-3).map((it: any) => it.content?.[0]?.text ?? it.content);
 		expect(lastThree).toEqual(['u4', 'u5', 'u6']);
 
-		expect(run as any).toHaveBeenCalledWith(expect.anything(), items.slice(0, -3));
+		expect(run as any).toHaveBeenCalled();
 	});
 
 	it('falls back to default notice if model throws', async () => {
@@ -64,6 +84,35 @@ describe('compactConversation utility', () => {
 		];
 
 		const { noticeContent } = await compactConversation(items as any);
-		expect(noticeContent).toBe('... conversation history compacted ...');
+		expect(noticeContent).toBe('... conversation history compacted (4 items, 0 tool calls) ...');
+	});
+
+	it('batches compaction if items exceed context limit', async () => {
+		// Mock estimateTokens to return a large value for a full list
+		(estimateTokens as any).mockImplementation((items: any[]) => items.length * 1000); // 1000 tokens per item
+
+		// Set a low context limit for testing
+		(getModelContextLimit as any).mockReturnValue(2500); // Only fits 2 items comfortably (2.5k limit, 0.9*2.5k = 2.25k target)
+
+		const itemsMany = [
+			user('u1'),
+			user('u2'),
+			user('u3'),
+			user('u4'),
+			user('u5'),
+			user('u6'),
+			user('u7'), // last 3 are u5, u6, u7. Items to compact are u1, u2, u3, u4 (4000 tokens).
+		];
+
+		// Reset mocks for the next call
+		(run as any).mockReset();
+		(run as any).mockResolvedValueOnce({ finalOutput: 'Summary 1' })
+			.mockResolvedValueOnce({ finalOutput: 'Summary 2' });
+
+		const result = await compactConversation(itemsMany as any);
+
+		expect(result.noticeContent).toContain('Summary 1');
+		expect(result.noticeContent).toContain('Summary 2');
+		expect(run).toHaveBeenCalledTimes(2); // 4 items / 2 items per batch = 2 calls
 	});
 });

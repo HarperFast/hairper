@@ -3,6 +3,9 @@ import { emitToListeners } from '../../ink/emitters/listener';
 import { getModel, isOpenAIModel } from '../../lifecycle/getModel';
 import { trackedState } from '../../lifecycle/trackedState';
 import { excludeFalsy } from '../arrays/excludeFalsy';
+import { estimateTokens } from '../models/estimateTokens';
+import { splitItemsIntelligently } from '../models/splitItemsIntelligently';
+import { getModelContextLimit } from './modelContextLimits';
 import { getModelSettings } from './modelSettings';
 
 export interface CompactionArtifacts {
@@ -18,27 +21,10 @@ export interface CompactionArtifacts {
 export async function compactConversation(
 	items: AgentInputItem[],
 ): Promise<CompactionArtifacts> {
-	// Find the split point that doesn't break a tool call/result pair
-	let splitIndex = Math.max(0, items.length - 3);
+	const { itemsToCompact, recentItems } = splitItemsIntelligently(items);
 
-	// Ensure we don't split between a function_call and its function_call_result
-	// We want both to be in the same group (either compact or recent)
-	while (splitIndex > 0 && splitIndex < items.length) {
-		const itemAtSplit = items[splitIndex] as any;
-		// If the item at split is a result, its call MUST be before it.
-		// If we split here, the result goes to recentItems and the call goes to itemsToCompact.
-		// This is what we want to avoid.
-		if (itemAtSplit.type === 'function_call_result') {
-			// Move split index back before the result's corresponding call
-			// For simplicity, we just move it back by one and check again
-			splitIndex--;
-		} else {
-			break;
-		}
-	}
-
-	const recentItems = items.slice(splitIndex);
-	const itemsToCompact = items.slice(0, splitIndex);
+	const contextLimit = getModelContextLimit(trackedState.compactionModel);
+	const targetLimit = Math.floor(contextLimit * 0.9); // Use 90% of limit to be safe
 
 	let noticeContent = '... conversation history compacted ...';
 
@@ -55,26 +41,63 @@ export async function compactConversation(
 					+ '\n- Do NOT include file content or patches, it is available on the filesystem already. '
 					+ '\n- Be concise.',
 			});
-			emitToListeners('SetCompacting', true);
-			const result = await run(
-				agent,
-				itemsToCompact,
-			);
 
-			const summary = result.finalOutput;
-			if (summary && summary.trim().length > 0) {
-				noticeContent = `Key observations from earlier:\n${summary.trim()}`;
+			const summaries: string[] = [];
+			let remainingItems = itemsToCompact;
+
+			while (remainingItems.length > 0) {
+				let currentBatch: AgentInputItem[] = [];
+				let lastGoodBatch: AgentInputItem[] = [];
+				let splitIdx = remainingItems.length;
+
+				// Find a batch that fits in the context window
+				while (splitIdx > 0) {
+					currentBatch = remainingItems.slice(0, splitIdx);
+					if (estimateTokens(currentBatch) <= targetLimit) {
+						lastGoodBatch = currentBatch;
+						break;
+					}
+					// Reduce batch size and try again
+					splitIdx = Math.floor(splitIdx * 0.8);
+				}
+
+				if (lastGoodBatch.length === 0) {
+					// Even a single item might be too large if it contains a massive file.
+					// Just take the first item and hope for the best, or skip it.
+					lastGoodBatch = [remainingItems[0]!];
+					splitIdx = 1;
+				}
+
+				emitToListeners('SetCompacting', true);
+				const result = await run(
+					agent,
+					lastGoodBatch,
+				);
+
+				const summary = result.finalOutput;
+				if (summary && summary.trim().length > 0) {
+					summaries.push(summary.trim());
+				}
+
+				remainingItems = remainingItems.slice(splitIdx);
+			}
+
+			if (summaries.length > 0) {
+				noticeContent = `Key observations from earlier:\n${summaries.join('\n\n')}`;
 			}
 		} catch (err: any) {
-			// Keep default notice if summarization fails. Suppress noisy tracing errors
-			// like "No existing trace found" which can occur when compaction runs
-			// outside an active tracing span. Log other errors at warn level.
+			// If we still fail, try to build a useful notice even without AI
 			const msg = String(err?.message || err || '');
 			const isNoTrace = /no existing trace found/i.test(msg) || /setCurrentSpan/i.test(msg);
 			if (!isNoTrace) {
 				// eslint-disable-next-line no-console
 				console.warn('Compaction summarization failed:', msg);
 			}
+
+			// Better fallback notice
+			const totalItems = itemsToCompact.length;
+			const toolCalls = itemsToCompact.filter((it: any) => it.type === 'function_call').length;
+			noticeContent = `... conversation history compacted (${totalItems} items, ${toolCalls} tool calls) ...`;
 		} finally {
 			emitToListeners('SetCompacting', false);
 		}

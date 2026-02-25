@@ -10,8 +10,10 @@ import { trackedState } from '../../lifecycle/trackedState';
 import type { PlanState, WithPlanState } from '../../lifecycle/withPlanState';
 import type { WithSkillsRead } from '../../lifecycle/withSkillsRead';
 import { excludeFalsy } from '../arrays/excludeFalsy';
+import { estimateTokens } from '../models/estimateTokens';
 import { compactConversation } from './compactConversation';
 import { getCompactionTriggerTokens } from './modelContextLimits';
+import { removeHarperInternalProviderData } from './removeHarperInternalProviderData';
 
 export interface MemoryCompactionSessionOptions {
 	underlyingSession?: Session;
@@ -104,7 +106,7 @@ export class MemoryCompactionSession implements OpenAIResponsesCompactionAwareSe
 	async getItems(limit?: number): Promise<AgentInputItem[]> {
 		// Return sanitized items so provider-specific metadata doesn't leak to upstream APIs.
 		const items = await this.underlyingSession.getItems(limit);
-		return (items as any[]).map((it) => sanitizeItem(it)) as AgentInputItem[];
+		return (items as any[]).map((it) => removeHarperInternalProviderData(it)) as AgentInputItem[];
 	}
 
 	/**
@@ -159,22 +161,22 @@ export class MemoryCompactionSession implements OpenAIResponsesCompactionAwareSe
 	 *   forcing flag is provided in args.
 	 * - If history is trivially small (<= 4 items), it skips compaction.
 	 * - Otherwise, it keeps the first item, adds a compaction notice (optionally
-	 *   summarized by the model), and retains the last 3 recent items.
+	 *   summarized by the model), and retains the last ~3 recent items.
 	 */
 	async runCompaction(args?: OpenAIResponsesCompactionArgs): Promise<OpenAIResponsesCompactionResult | null> {
-		// Use sanitized view of history for compaction operations and token estimates.
+		// Use a sanitized view of history for compaction operations and token estimates.
 		const items = await this.getItems();
 
 		if (items.length <= 1) {
 			return null;
 		}
 
-		// Decide if compaction is needed based on token threshold unless forced.
+		// Decide if compaction is needed based on the token threshold (unless forced).
 		const force = !!(args as any)?.force || !!(args as any)?.always || (args as any)?.trigger === 'force';
 		if (!force && this.triggerTokens && this.triggerTokens > 0) {
 			const tokenEstimate = estimateTokens(items);
 			if (tokenEstimate < this.triggerTokens) {
-				return null; // below threshold, skip compaction
+				return null; // below the threshold, skip compaction
 			}
 		}
 
@@ -194,59 +196,4 @@ export class MemoryCompactionSession implements OpenAIResponsesCompactionAwareSe
 
 		return null;
 	}
-}
-
-function sanitizeItem<T extends Record<string, any>>(it: T): T {
-	if (!it || typeof it !== 'object') { return it; }
-	const out: any = { ...it };
-	// Remove any stray top-level 'harper' key just in case
-	if ('harper' in out) {
-		try {
-			delete out.harper;
-		} catch {}
-	}
-	const pd = out.providerData && typeof out.providerData === 'object' ? { ...out.providerData } : undefined;
-	if (pd) {
-		if ('harper' in pd) {
-			try {
-				delete (pd as any).harper;
-			} catch {}
-		}
-		// If providerData ends up empty, drop it to avoid sending empty objects upstream
-		if (Object.keys(pd).length === 0) {
-			try {
-				delete out.providerData;
-			} catch {
-				out.providerData = undefined;
-			}
-		} else {
-			out.providerData = pd;
-		}
-	}
-	return out as T;
-}
-
-// Rough token estimator: ~4 chars per token heuristic across text content
-function estimateTokens(items: AgentInputItem[]): number {
-	let chars = 0;
-	for (const it of items as any[]) {
-		if (!it) { continue; }
-		// message-style with content array
-		if (Array.isArray((it as any).content)) {
-			for (const c of (it as any).content) {
-				if (!c) { continue; }
-				if (typeof c.text === 'string') { chars += c.text.length; }
-				else if (typeof c.content === 'string') { chars += c.content.length; }
-				else if (typeof c === 'string') { chars += c.length; }
-			}
-		}
-		// single string content
-		if (typeof (it as any).content === 'string') {
-			chars += (it as any).content.length;
-		}
-		if (typeof (it as any).text === 'string') {
-			chars += (it as any).text.length;
-		}
-	}
-	return Math.ceil(chars / 4);
 }

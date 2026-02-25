@@ -2,33 +2,32 @@
 // When exact limits are unknown, we pick a safe fallback to avoid overfilling.
 
 export function getModelContextLimit(modelName: string | undefined | null): number {
-	if (!modelName) { return DEFAULT_LIMIT; }
+	if (!modelName) {
+		return DEFAULT_LIMIT;
+	}
+
 	const name = modelName.toLowerCase();
 
-	// OpenAI (fallbacks for non-OpenAI path if ever used here)
-	if (name.startsWith('gpt-4o') || name.startsWith('gpt-5')) {
+	// OpenAI
+	if (name.startsWith('gpt-')) {
+		if (name.startsWith('gpt-4')) {
+			return 128_000;
+		}
+
 		return 200_000; // typical 128k–200k; be safe
 	}
 
-	if (name.startsWith('gpt-4')) {
-		return 128_000;
-	}
-
 	// Anthropic
-	if (name.startsWith('claude-3.5') || name.startsWith('claude-3')) {
-		return 200_000;
-	}
-	if (name.startsWith('claude-4.6') || name.startsWith('claude-4.5')) {
+	if (name.startsWith('claude-')) {
+		if (name.startsWith('claude-3.7') || name.startsWith('claude-3.5') || name.startsWith('claude-3')) {
+			return 200_000;
+		}
 		return 1_000_000;
 	}
 
 	// Google Gemini
-	if (name.startsWith('gemini-1.5') || name.startsWith('gemini-3')) {
-		return 1_000_000;
-	}
-
 	if (name.startsWith('gemini-')) {
-		return 128_000;
+		return 1_000_000;
 	}
 
 	if (name.startsWith('ollama-')) {
