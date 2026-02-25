@@ -6,7 +6,7 @@ import { emitToListeners } from './ink/emitters/listener';
 import { bootstrapConfig, bootstrapMain } from './ink/main';
 import { handleExit } from './lifecycle/handleExit';
 import { parseArgs } from './lifecycle/parseArgs';
-import { resetTrackedState, trackedState } from './lifecycle/trackedState';
+import { resetTrackedState } from './lifecycle/trackedState';
 import { loadEnv } from './utils/envLoader';
 import { setupGlobalErrorHandlers } from './utils/logger';
 import { checkForUpdate } from './utils/package/checkForUpdate';
