@@ -36,11 +36,4 @@ import { ensureApiKey } from './utils/shell/ensureApiKey';
 
 	await agentManager.initialize();
 	bootstrapMain();
-
-	if (trackedState.prompt?.trim?.()?.length) {
-		trackedState.autonomous = true;
-		emitToListeners('PushNewMessages', [
-			{ type: 'prompt', text: trackedState.prompt.trim(), version: 1 },
-		]);
-	}
 })();

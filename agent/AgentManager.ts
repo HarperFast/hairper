@@ -1,6 +1,6 @@
 import { Agent, type AgentInputItem, type RunState } from '@openai/agents';
 import { globalPlanContext } from '../ink/contexts/globalPlanContext';
-import { addListener, emitToListeners } from '../ink/emitters/listener';
+import { addListener, curryEmitToListeners, emitToListeners } from '../ink/emitters/listener';
 import type { Message } from '../ink/models/message';
 import { defaultInstructions } from '../lifecycle/defaultInstructions';
 import { getModel, isOpenAIModel } from '../lifecycle/getModel';
@@ -159,10 +159,27 @@ export class AgentManager {
 		}
 
 		this.isInitialized = true;
+
+		if (trackedState.prompt?.trim?.()?.length) {
+			trackedState.autonomous = true;
+			setTimeout(
+				curryEmitToListeners('PushNewMessages', [
+					{ type: 'prompt', text: trackedState.prompt.trim(), version: 1 },
+				]),
+				500,
+			);
+		} else if (!this.initialMessages?.length) {
+			setTimeout(
+				curryEmitToListeners('PushNewMessages', [
+					{ type: 'agent', text: 'What would you like to create together?', version: 1 },
+				]),
+				500,
+			);
+		}
 	}
 
 	public enqueueUserInput(text: string) {
-		if (typeof text === 'string' && text.trim().length > 0) {
+		if (text.trim().length > 0) {
 			this.queuedUserInputs.push(text);
 		}
 	}
