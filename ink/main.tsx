@@ -11,11 +11,13 @@ import { PlanProvider } from './contexts/PlanContext';
 import { SettingsProvider } from './contexts/SettingsContext';
 import { useListener } from './emitters/listener';
 
-export function bootstrapConfig(onComplete: (value?: unknown) => void) {
-	render(<MainConfig onComplete={onComplete} />);
+export function bootstrapConfig() {
+	return new Promise(resolve => {
+		render(<MainConfig onComplete={resolve} />);
+	});
 }
 
-function MainConfig({ onComplete }: { onComplete: (value?: unknown) => void }) {
+export function MainConfig({ onComplete }: { onComplete: (value?: unknown) => void }) {
 	const { exit } = useApp();
 	useListener('ExitUI', () => exit(), [exit]);
 	return <ConfigurationWizard onComplete={onComplete} />;

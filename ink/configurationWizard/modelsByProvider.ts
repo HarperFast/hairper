@@ -21,5 +21,5 @@ export const compactorModelsByProvider: Record<ModelProvider, string[]> = {
 	OpenAI: modelsByProvider.OpenAI.slice().reverse(),
 	Anthropic: modelsByProvider.Anthropic.slice().reverse(),
 	Google: modelsByProvider.Google.slice().reverse(),
-	Ollama: modelsByProvider.Ollama.slice(),
+	Ollama: modelsByProvider.Ollama.slice().reverse(),
 };

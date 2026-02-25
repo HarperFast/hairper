@@ -19,29 +19,38 @@ export interface TrackedState {
 	autonomous: boolean;
 	prompt: string | null;
 }
-export const trackedState: TrackedState = {
-	originalCwd: process.cwd(),
-	cwd: process.cwd(),
-	model: '',
-	compactionModel: '',
-	originalSessionPath: null,
 
-	get sessionPath() {
-		return resolveSessionPathConsideringHarper(trackedState.originalSessionPath, this.cwd, this.originalCwd);
-	},
-	set sessionPath(value: string | null) {
-		trackedState.originalSessionPath = value;
-	},
+export let trackedState: TrackedState = bootstrapTrackedState();
 
-	useFlexTier: false,
-	currentTurn: 0,
-	maxTurns: 30,
-	maxCost: null,
-	autoApproveCodeInterpreter: false,
-	autoApprovePatches: false,
-	autoApproveShell: false,
-	monitorRateLimits: true,
-	rateLimitThreshold: 80,
-	autonomous: false,
-	prompt: null,
-};
+export function resetTrackedState() {
+	trackedState = bootstrapTrackedState();
+}
+
+function bootstrapTrackedState(): TrackedState {
+	return {
+		originalCwd: process.cwd(),
+		cwd: process.cwd(),
+		model: '',
+		compactionModel: '',
+		originalSessionPath: null,
+
+		get sessionPath() {
+			return resolveSessionPathConsideringHarper(trackedState.originalSessionPath, this.cwd, this.originalCwd);
+		},
+		set sessionPath(value: string | null) {
+			trackedState.originalSessionPath = value;
+		},
+
+		useFlexTier: false,
+		currentTurn: 0,
+		maxTurns: 30,
+		maxCost: null,
+		autoApproveCodeInterpreter: false,
+		autoApprovePatches: false,
+		autoApproveShell: false,
+		monitorRateLimits: true,
+		rateLimitThreshold: 80,
+		autonomous: false,
+		prompt: null,
+	};
+}

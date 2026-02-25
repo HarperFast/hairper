@@ -6,7 +6,7 @@ import { emitToListeners } from './ink/emitters/listener';
 import { bootstrapConfig, bootstrapMain } from './ink/main';
 import { handleExit } from './lifecycle/handleExit';
 import { parseArgs } from './lifecycle/parseArgs';
-import { trackedState } from './lifecycle/trackedState';
+import { resetTrackedState, trackedState } from './lifecycle/trackedState';
 import { loadEnv } from './utils/envLoader';
 import { setupGlobalErrorHandlers } from './utils/logger';
 import { checkForUpdate } from './utils/package/checkForUpdate';
@@ -23,9 +23,8 @@ import { ensureApiKey } from './utils/shell/ensureApiKey';
 
 	parseArgs();
 	if (!ensureApiKey()) {
-		await new Promise(resolve => {
-			bootstrapConfig(resolve);
-		});
+		resetTrackedState();
+		await bootstrapConfig();
 		emitToListeners('ExitUI', undefined);
 		parseArgs();
 		if (!ensureApiKey()) {
